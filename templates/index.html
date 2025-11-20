@@ -19,54 +19,51 @@
 
       <div class="main-layout">
         <div class="game-card">
-          <p class="message">{{ mensaje }}</p>
-  
-          {% if pidiendo_nombre %}
-          <form method="POST" class="game-form">
-            <input
-              type="text"
-              name="nombre"
-              placeholder="¡Escribe tu nombre, campeón!"
-              maxlength="16"
-              pattern="[A-Za-z0-9 _-]+"
-              title="Máximo 16 caracteres. Letras, números y espacios."
-              autofocus
-              required
-              autocomplete="off"
-            />
-            <button type="submit" name="guardar_score" value="true">
-              Guardar Puntuación
+          <p id="mensaje" class="message">He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?</p>
+
+          <!-- Sección de Juego -->
+          <div id="game-section">
+            <form id="guess-form" class="game-form">
+              <input
+                type="number"
+                id="intento"
+                placeholder="Introduce un número..."
+                autofocus
+                autocomplete="off"
+              />
+              <button type="submit">Probar suerte</button>
+            </form>
+          </div>
+
+          <!-- Sección de Ganador (Oculta al inicio) -->
+          <div id="winner-section" class="hidden">
+            <form method="POST" class="game-form">
+              <input type="hidden" name="intentos_finales" id="intentos_finales_input">
+              <input
+                type="text"
+                name="nombre"
+                placeholder="¡Escribe tu nombre, campeón!"
+                maxlength="16"
+                pattern="[A-Za-z0-9 _-]+"
+                title="Máximo 16 caracteres. Letras, números y espacios."
+                required
+                autocomplete="off"
+                id="nombre-input"
+              />
+              <button type="submit" name="guardar_score" value="true">
+                Guardar Puntuación
+              </button>
+            </form>
+            <button id="restart-btn" class="restart-btn" style="margin-top: 1rem;">
+                Jugar de nuevo
             </button>
-          </form>
-          {% elif not juego_terminado %}
-          <form method="POST" class="game-form">
-            <input
-              type="number"
-              name="intento"
-              placeholder="Introduce un número..."
-              autofocus
-              autocomplete="off"
-            />
-            <button type="submit">Probar suerte</button>
-          </form>
-          {% else %}
-          <form method="POST">
-            <button
-              type="submit"
-              name="reiniciar"
-              value="true"
-              class="restart-btn"
-            >
-              Jugar de nuevo
-            </button>
-          </form>
-          {% endif %}
-  
+          </div>
+
           <div class="stats">
-            <p>Intentos: <span>{{ intentos }}</span></p>
+            <p>Intentos: <span id="intentos-count">0</span></p>
           </div>
         </div>
-  
+
         {% if top_scores %}
         <div class="ranking-card">
           <h2>🏆 Top 5 Mejores Jugadores</h2>
@@ -90,5 +87,107 @@
         {% endif %}
       </div>
     </div>
+
+    <script>
+        // Lógica del Juego en Cliente
+        let numeroSecreto = Math.floor(Math.random() * 100) + 1;
+        let intentos = 0;
+        let intentosPrevios = [];
+        let juegoTerminado = false;
+
+        const mensajeEl = document.getElementById('mensaje');
+        const intentosEl = document.getElementById('intentos-count');
+        const guessForm = document.getElementById('guess-form');
+        const intentoInput = document.getElementById('intento');
+        const gameSection = document.getElementById('game-section');
+        const winnerSection = document.getElementById('winner-section');
+        const intentosFinalesInput = document.getElementById('intentos_finales_input');
+        const restartBtn = document.getElementById('restart-btn');
+        const nombreInput = document.getElementById('nombre-input');
+
+        console.log("Número secreto (shhh):", numeroSecreto);
+
+        guessForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Evitar recarga de página
+            
+            if (juegoTerminado) return;
+
+            const valor = intentoInput.value.trim();
+            
+            // 1. Validación: Vacío
+            if (!valor) {
+                mensajeEl.textContent = "¡No has escrito nada! Por favor, introduce un número.";
+                mensajeEl.style.color = "#fbbf24"; // Amarillo advertencia
+                return;
+            }
+
+            const numero = parseInt(valor);
+
+            // 2. Validación: Rango
+            if (isNaN(numero) || numero < 1 || numero > 100) {
+                mensajeEl.textContent = `¡Oye! El ${valor} no vale. Tiene que ser entre 1 y 100.`;
+                mensajeEl.style.color = "#fbbf24";
+                intentoInput.value = '';
+                return;
+            }
+
+            // 3. Validación: Repetidos
+            if (intentosPrevios.includes(numero)) {
+                mensajeEl.textContent = `¡Ya dijiste el ${numero}! Prueba con otro diferente.`;
+                mensajeEl.style.color = "#fbbf24";
+                intentoInput.value = '';
+                return;
+            }
+
+            // Si pasa todo, cuenta como intento
+            intentos++;
+            intentosPrevios.push(numero);
+            intentosEl.textContent = intentos;
+            mensajeEl.style.color = "var(--text-main)"; // Color normal
+
+            if (numero < numeroSecreto) {
+                mensajeEl.textContent = `El número ${numero} es demasiado bajo. ¡Inténtalo de nuevo!`;
+                intentoInput.value = '';
+                intentoInput.focus();
+            } else if (numero > numeroSecreto) {
+                mensajeEl.textContent = `El número ${numero} es demasiado alto. ¡Inténtalo de nuevo!`;
+                intentoInput.value = '';
+                intentoInput.focus();
+            } else {
+                // ¡GANASTE!
+                juegoTerminado = true;
+                mensajeEl.textContent = `¡Felicidades! Has adivinado el número ${numeroSecreto} en ${intentos} intentos.`;
+                mensajeEl.style.color = "#10b981"; // Verde éxito
+                
+                // Cambiar interfaz
+                gameSection.classList.add('hidden');
+                winnerSection.classList.remove('hidden');
+                intentosFinalesInput.value = intentos;
+                
+                // Enfocar nombre
+                setTimeout(() => nombreInput.focus(), 100);
+            }
+        });
+
+        restartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Reiniciar juego
+            numeroSecreto = Math.floor(Math.random() * 100) + 1;
+            intentos = 0;
+            intentosPrevios = [];
+            juegoTerminado = false;
+            
+            mensajeEl.textContent = "He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?";
+            mensajeEl.style.color = "var(--text-main)";
+            intentosEl.textContent = "0";
+            intentoInput.value = '';
+            
+            winnerSection.classList.add('hidden');
+            gameSection.classList.remove('hidden');
+            intentoInput.focus();
+            
+            console.log("Nuevo número secreto:", numeroSecreto);
+        });
+    </script>
   </body>
 </html>

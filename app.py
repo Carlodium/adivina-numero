@@ -68,73 +68,24 @@ init_db()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    # Si es GET y el juego terminó y ya no está pidiendo nombre, reiniciar
-    if request.method == 'GET' and session.get('juego_terminado') and not session.get('pidiendo_nombre'):
-        session.clear()
-    
-    if 'numero_secreto' not in session:
-        session['numero_secreto'] = random.randint(1, 100)
-        session['intentos'] = 0
-        session['mensaje'] = "He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?"
-        session['juego_terminado'] = False
-        session['pidiendo_nombre'] = False
-        session['intentos_previos'] = []  # Lista para guardar números ya dichos
-
     if request.method == 'POST':
-        if 'reiniciar' in request.form:
-            session.pop('numero_secreto', None)
-            return redirect(url_for('index'))
-
         if 'guardar_score' in request.form:
             nombre = request.form.get('nombre', '').strip()
+            intentos_str = request.form.get('intentos_finales')
+            
+            try:
+                intentos = int(intentos_str)
+            except (ValueError, TypeError):
+                intentos = 999 # Fallback por si acaso
+
             # Validar nombre: máximo 16 caracteres, permite letras, números, guiones y espacios
-            # .replace(' ', '') permite validar que el resto sean caracteres válidos
             if nombre and len(nombre) <= 16 and nombre.replace('_', '').replace('-', '').replace(' ', '').isalnum():
-                save_score(nombre, session['intentos'])
-                session.clear()  # Limpiar sesión para empezar de nuevo
-            else:
-                session['mensaje'] = "Nombre inválido. Máx 16 caracteres. Solo letras, números y espacios."
-                session['pidiendo_nombre'] = True
+                save_score(nombre, intentos)
+            
             return redirect(url_for('index'))
 
-        if not session.get('juego_terminado'):
-            entrada = request.form.get('intento')
-            
-            if not entrada or not entrada.strip():
-                 session['mensaje'] = "¡No has escrito nada! Por favor, introduce un número."
-            else:
-                try:
-                    estimacion = int(entrada)
-                    
-                    # Validaciones que NO cuentan como intento
-                    if estimacion < 1 or estimacion > 100:
-                        session['mensaje'] = f"¡Oye! El {estimacion} no vale. Tiene que ser entre 1 y 100."
-                    elif estimacion in session['intentos_previos']:
-                        session['mensaje'] = f"¡Ya dijiste el {estimacion}! Prueba con otro diferente."
-                    else:
-                        # Si pasa todas las validaciones, AHORA SÍ cuenta como intento
-                        session['intentos'] += 1
-                        session['intentos_previos'].append(estimacion)
-                        
-                        if estimacion < session['numero_secreto']:
-                            session['mensaje'] = f"El número {estimacion} es demasiado bajo. ¡Inténtalo de nuevo!"
-                        elif estimacion > session['numero_secreto']:
-                            session['mensaje'] = f"El número {estimacion} es demasiado alto. ¡Inténtalo de nuevo!"
-                        else:
-                            session['mensaje'] = f"¡Felicidades! Has adivinado el número {session['numero_secreto']} en {session['intentos']} intentos."
-                            session['juego_terminado'] = True
-                            session['pidiendo_nombre'] = True
-                            
-                except ValueError:
-                    session['mensaje'] = "Eso no parece un número válido. ¡Inténtalo otra vez!"
-
     top_scores = get_top_scores()
-    return render_template('index.html', 
-                         mensaje=session.get('mensaje'), 
-                         intentos=session.get('intentos'),
-                         juego_terminado=session.get('juego_terminado'),
-                         pidiendo_nombre=session.get('pidiendo_nombre'),
-                         top_scores=top_scores)
+    return render_template('index.html', top_scores=top_scores)
 
 if __name__ == '__main__':
     app.run(debug=True)
