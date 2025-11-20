@@ -78,6 +78,7 @@ def index():
         session['mensaje'] = "He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?"
         session['juego_terminado'] = False
         session['pidiendo_nombre'] = False
+        session['intentos_previos'] = []  # Lista para guardar números ya dichos
 
     if request.method == 'POST':
         if 'reiniciar' in request.form:
@@ -99,23 +100,33 @@ def index():
         if not session.get('juego_terminado'):
             entrada = request.form.get('intento')
             
-            if not entrada:
-                 session['mensaje'] = "Por favor, escribe algo."
+            if not entrada or not entrada.strip():
+                 session['mensaje'] = "¡No has escrito nada! Por favor, introduce un número."
             else:
                 try:
                     estimacion = int(entrada)
-                    session['intentos'] += 1
                     
-                    if estimacion < session['numero_secreto']:
-                        session['mensaje'] = f"El número {estimacion} es demasiado bajo. ¡Inténtalo de nuevo!"
-                    elif estimacion > session['numero_secreto']:
-                        session['mensaje'] = f"El número {estimacion} es demasiado alto. ¡Inténtalo de nuevo!"
+                    # Validaciones que NO cuentan como intento
+                    if estimacion < 1 or estimacion > 100:
+                        session['mensaje'] = f"¡Oye! El {estimacion} no vale. Tiene que ser entre 1 y 100."
+                    elif estimacion in session['intentos_previos']:
+                        session['mensaje'] = f"¡Ya dijiste el {estimacion}! Prueba con otro diferente."
                     else:
-                        session['mensaje'] = f"¡Felicidades! Has adivinado el número {session['numero_secreto']} en {session['intentos']} intentos."
-                        session['juego_terminado'] = True
-                        session['pidiendo_nombre'] = True
+                        # Si pasa todas las validaciones, AHORA SÍ cuenta como intento
+                        session['intentos'] += 1
+                        session['intentos_previos'].append(estimacion)
+                        
+                        if estimacion < session['numero_secreto']:
+                            session['mensaje'] = f"El número {estimacion} es demasiado bajo. ¡Inténtalo de nuevo!"
+                        elif estimacion > session['numero_secreto']:
+                            session['mensaje'] = f"El número {estimacion} es demasiado alto. ¡Inténtalo de nuevo!"
+                        else:
+                            session['mensaje'] = f"¡Felicidades! Has adivinado el número {session['numero_secreto']} en {session['intentos']} intentos."
+                            session['juego_terminado'] = True
+                            session['pidiendo_nombre'] = True
+                            
                 except ValueError:
-                    session['mensaje'] = "Por favor, introduce un número válido."
+                    session['mensaje'] = "Eso no parece un número válido. ¡Inténtalo otra vez!"
 
     top_scores = get_top_scores()
     return render_template('index.html', 
