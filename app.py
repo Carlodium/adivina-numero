@@ -34,6 +34,10 @@ init_db()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    # Si es GET y el juego terminó y ya no está pidiendo nombre, reiniciar
+    if request.method == 'GET' and session.get('juego_terminado') and not session.get('pidiendo_nombre'):
+        session.clear()
+    
     if 'numero_secreto' not in session:
         session['numero_secreto'] = random.randint(1, 100)
         session['intentos'] = 0
