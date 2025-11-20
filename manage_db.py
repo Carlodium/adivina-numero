@@ -13,7 +13,13 @@ def get_db_connection():
         return psycopg2.connect(database_url)
     else:
         import sqlite3
-        return sqlite3.connect('scores.db')
+        conn = sqlite3.connect('scores.db')
+        # Asegurar que la tabla existe
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS scores
+                     (name TEXT, attempts INTEGER)''')
+        conn.commit()
+        return conn
 
 def ver_todas_puntuaciones():
     """Mostrar todas las puntuaciones"""
@@ -24,44 +30,59 @@ def ver_todas_puntuaciones():
     conn.close()
     
     if scores:
-        print("\n🏆 TODAS LAS PUNTUACIONES:")
-        print("-" * 40)
+        print("\n🏆 ¡AQUÍ ESTÁN LOS CAMPEONES! 🏆")
+        print("=" * 40)
         for i, (name, attempts) in enumerate(scores, 1):
-            print(f"{i}. {name} - {attempts} intentos")
-        print("-" * 40)
+            print(f"  {i}. {name} --> {attempts} intentos")
+        print("=" * 40)
+        print(f"Total: {len(scores)} puntuaciones registradas.")
     else:
-        print("\n❌ No hay puntuaciones guardadas.")
+        print("\n📭 La lista está vacía...")
+        print("¡Nadie ha jugado todavía (o has borrado todo)!")
+        print("¡Es tu oportunidad de ser el primero! 🥇")
     
     return len(scores)
 
 def borrar_todas_puntuaciones():
     """Borrar TODAS las puntuaciones"""
-    respuesta = input("\n⚠️  ¿Estás seguro de que quieres BORRAR TODAS las puntuaciones? (sí/no): ")
-    if respuesta.lower() in ['sí', 'si', 's', 'yes', 'y']:
+    print("\n🚨 ¡CUIDADO! ESTÁS A PUNTO DE BORRAR TODO 🚨")
+    print("Esto eliminará permanentemente el historial de todos los jugadores.")
+    respuesta = input("¿Estás 100% seguro? Escribe 'BORRAR' para confirmar: ")
+    
+    if respuesta == 'BORRAR':
         conn = get_db_connection()
         c = conn.cursor()
         c.execute('DELETE FROM scores')
         conn.commit()
         conn.close()
-        print("\n✅ ¡Todas las puntuaciones han sido borradas!")
+        print("\n✨ ¡Puf! Todo ha desaparecido.")
+        print("La base de datos está limpia como una patena.")
     else:
-        print("\n❌ Operación cancelada.")
+        print("\n😅 ¡Uff! Operación cancelada.")
+        print("Los datos están a salvo.")
 
 def borrar_puntuacion_especifica():
     """Borrar una puntuación específica por nombre"""
-    nombre = input("\n📝 Escribe el nombre exacto de la puntuación a borrar: ")
+    print("\n🕵️  MODO DETECTIVE: Borrar un jugador específico")
+    nombre = input("Escribe el nombre EXACTO del jugador que quieres borrar: ")
     
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute('DELETE FROM scores WHERE name = %s' if os.environ.get('DATABASE_URL') else 'DELETE FROM scores WHERE name = ?', (nombre,))
-    filas_borradas = c.rowcount
-    conn.commit()
-    conn.close()
     
-    if filas_borradas > 0:
-        print(f"\n✅ Se borraron {filas_borradas} puntuación(es) de '{nombre}'")
+    # Primero verificamos si existe
+    c.execute('SELECT COUNT(*) FROM scores WHERE name = %s' if os.environ.get('DATABASE_URL') else 'SELECT COUNT(*) FROM scores WHERE name = ?', (nombre,))
+    count = c.fetchone()[0]
+    
+    if count == 0:
+        print(f"\n❌ Mmm... No encuentro a nadie llamado '{nombre}'.")
+        print("¿Seguro que lo escribiste bien? Revisa mayúsculas y minúsculas.")
     else:
-        print(f"\n❌ No se encontró ninguna puntuación con el nombre '{nombre}'")
+        c.execute('DELETE FROM scores WHERE name = %s' if os.environ.get('DATABASE_URL') else 'DELETE FROM scores WHERE name = ?', (nombre,))
+        conn.commit()
+        print(f"\n✅ ¡Listo! He borrado {count} registro(s) de '{nombre}'.")
+        print("¡Adiós popó! 👋")
+    
+    conn.close()
 
 def menu():
     """Menú principal"""

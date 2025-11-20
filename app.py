@@ -64,12 +64,13 @@ def index():
 
         if 'guardar_score' in request.form:
             nombre = request.form.get('nombre', '').strip()
-            # Validar nombre: máximo 16 caracteres, sin espacios, solo alfanuméricos
-            if nombre and len(nombre) <= 16 and nombre.replace('_', '').replace('-', '').isalnum() and ' ' not in nombre:
+            # Validar nombre: máximo 16 caracteres, permite letras, números, guiones y espacios
+            # .replace(' ', '') permite validar que el resto sean caracteres válidos
+            if nombre and len(nombre) <= 16 and nombre.replace('_', '').replace('-', '').replace(' ', '').isalnum():
                 save_score(nombre, session['intentos'])
                 session.clear()  # Limpiar sesión para empezar de nuevo
             else:
-                session['mensaje'] = "Nombre inválido. Máximo 16 caracteres, sin espacios."
+                session['mensaje'] = "Nombre inválido. Máx 16 caracteres. Solo letras, números y espacios."
                 session['pidiendo_nombre'] = True
             return redirect(url_for('index'))
 
