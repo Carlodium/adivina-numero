@@ -50,8 +50,7 @@ def index():
             nombre = request.form.get('nombre')
             if nombre:
                 save_score(nombre, session['intentos'])
-                session['mensaje'] = f"¡Guardado! {nombre} con {session['intentos']} intentos."
-                session['pidiendo_nombre'] = False
+                session.clear()  # Limpiar sesión para empezar de nuevo
             return redirect(url_for('index'))
 
         if not session.get('juego_terminado'):
