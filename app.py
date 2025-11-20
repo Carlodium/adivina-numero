@@ -21,8 +21,30 @@ def get_db_connection():
 def init_db():
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS scores
-                 (name TEXT, attempts INTEGER)''')
+    
+    # Verificar si la tabla existe y tiene la columna id
+    try:
+        c.execute('SELECT id FROM scores LIMIT 1')
+    except:
+        # Si falla, es que no existe o es la versión vieja. Borramos y creamos de nuevo.
+        conn.rollback() # Necesario en Postgres si hay error
+        c.execute('DROP TABLE IF EXISTS scores')
+        conn.commit()
+        
+        # Crear tabla nueva con ID
+        if os.environ.get('DATABASE_URL'):
+            # PostgreSQL
+            c.execute('''CREATE TABLE scores
+                         (id SERIAL PRIMARY KEY,
+                          name TEXT,
+                          attempts INTEGER)''')
+        else:
+            # SQLite
+            c.execute('''CREATE TABLE scores
+                         (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          name TEXT,
+                          attempts INTEGER)''')
+    
     conn.commit()
     conn.close()
 

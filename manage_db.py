@@ -22,19 +22,29 @@ def get_db_connection():
         return conn
 
 def ver_todas_puntuaciones():
-    """Mostrar todas las puntuaciones"""
+    """Mostrar todas las puntuaciones con ID"""
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute('SELECT name, attempts FROM scores ORDER BY attempts ASC')
-    scores = c.fetchall()
+    
+    # Intentar seleccionar con ID
+    try:
+        c.execute('SELECT id, name, attempts FROM scores ORDER BY attempts ASC')
+        scores = c.fetchall()
+    except:
+        # Si falla, es que la tabla aún no se ha actualizado.
+        print("\n⚠️  La base de datos se está actualizando. Ejecuta el juego una vez para aplicar cambios.")
+        return 0
+        
     conn.close()
     
     if scores:
         print("\n🏆 ¡AQUÍ ESTÁN LOS CAMPEONES! 🏆")
-        print("=" * 40)
-        for i, (name, attempts) in enumerate(scores, 1):
-            print(f"  {i}. {name} --> {attempts} intentos")
-        print("=" * 40)
+        print("=" * 60)
+        print(f"{'ID':<5} | {'NOMBRE':<30} | {'INTENTOS':<10}")
+        print("-" * 60)
+        for id_score, name, attempts in scores:
+            print(f"{id_score:<5} | {name:<30} | {attempts:<10}")
+        print("=" * 60)
         print(f"Total: {len(scores)} puntuaciones registradas.")
     else:
         print("\n📭 La lista está vacía...")
@@ -62,25 +72,38 @@ def borrar_todas_puntuaciones():
         print("Los datos están a salvo.")
 
 def borrar_puntuacion_especifica():
-    """Borrar una puntuación específica por nombre"""
-    print("\n🕵️  MODO DETECTIVE: Borrar un jugador específico")
-    nombre = input("Escribe el nombre EXACTO del jugador que quieres borrar: ")
+    """Borrar una puntuación específica por ID"""
+    print("\n🕵️  MODO DETECTIVE: Borrar por ID")
+    ver_todas_puntuaciones()
+    
+    id_input = input("\nEscribe el ID de la puntuación que quieres borrar: ")
+    
+    if not id_input.isdigit():
+        print("\n❌ Por favor, escribe un número válido.")
+        return
+
+    id_borrar = int(id_input)
     
     conn = get_db_connection()
     c = conn.cursor()
     
-    # Primero verificamos si existe
-    c.execute('SELECT COUNT(*) FROM scores WHERE name = %s' if os.environ.get('DATABASE_URL') else 'SELECT COUNT(*) FROM scores WHERE name = ?', (nombre,))
-    count = c.fetchone()[0]
+    # Verificar si existe
+    c.execute('SELECT name FROM scores WHERE id = %s' if os.environ.get('DATABASE_URL') else 'SELECT name FROM scores WHERE id = ?', (id_borrar,))
+    resultado = c.fetchone()
     
-    if count == 0:
-        print(f"\n❌ Mmm... No encuentro a nadie llamado '{nombre}'.")
-        print("¿Seguro que lo escribiste bien? Revisa mayúsculas y minúsculas.")
+    if not resultado:
+        print(f"\n❌ No encuentro ninguna puntuación con ID {id_borrar}.")
     else:
-        c.execute('DELETE FROM scores WHERE name = %s' if os.environ.get('DATABASE_URL') else 'DELETE FROM scores WHERE name = ?', (nombre,))
-        conn.commit()
-        print(f"\n✅ ¡Listo! He borrado {count} registro(s) de '{nombre}'.")
-        print("¡Adiós popó! 👋")
+        nombre = resultado[0]
+        confirmacion = input(f"¿Seguro que quieres borrar a '{nombre}' (ID: {id_borrar})? (s/n): ")
+        
+        if confirmacion.lower() in ['s', 'si', 'y', 'yes']:
+            c.execute('DELETE FROM scores WHERE id = %s' if os.environ.get('DATABASE_URL') else 'DELETE FROM scores WHERE id = ?', (id_borrar,))
+            conn.commit()
+            print(f"\n✅ ¡Listo! He borrado a '{nombre}' (ID: {id_borrar}).")
+            print("¡Adiós popó! 👋")
+        else:
+            print("\n😅 Operación cancelada.")
     
     conn.close()
 
