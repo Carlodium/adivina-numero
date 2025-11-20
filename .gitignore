@@ -5,3 +5,10 @@ __pycache__/
 env/
 venv/
 .vscode/
+
+# Database files (local only)
+scores.db
+
+# Management scripts (admin only)
+manage_scores_render.bat
+clear_db_temp.py

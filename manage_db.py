@@ -4,12 +4,12 @@ Ejecuta este archivo para borrar todas las puntuaciones o ver las actuales.
 """
 
 import os
-import psycopg2
 
 def get_db_connection():
     """Conectar a la base de datos"""
     database_url = os.environ.get('DATABASE_URL')
     if database_url:
+        import psycopg2
         return psycopg2.connect(database_url)
     else:
         import sqlite3
