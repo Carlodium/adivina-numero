@@ -1,13 +1,25 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import random
 import os
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
+def get_db_connection():
+    """Get database connection from environment variable or use SQLite locally"""
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        # PostgreSQL (production on Render)
+        return psycopg2.connect(database_url)
+    else:
+        # SQLite (local development)
+        import sqlite3
+        return sqlite3.connect('scores.db')
+
 def init_db():
-    conn = sqlite3.connect('scores.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS scores
                  (name TEXT, attempts INTEGER)''')
@@ -15,7 +27,7 @@ def init_db():
     conn.close()
 
 def get_top_scores():
-    conn = sqlite3.connect('scores.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('SELECT name, attempts FROM scores ORDER BY attempts ASC LIMIT 5')
     scores = c.fetchall()
@@ -23,9 +35,9 @@ def get_top_scores():
     return scores
 
 def save_score(name, attempts):
-    conn = sqlite3.connect('scores.db')
+    conn = get_db_connection()
     c = conn.cursor()
-    c.execute('INSERT INTO scores (name, attempts) VALUES (?, ?)', (name, attempts))
+    c.execute('INSERT INTO scores (name, attempts) VALUES (%s, %s)', (name, attempts))
     conn.commit()
     conn.close()
 
