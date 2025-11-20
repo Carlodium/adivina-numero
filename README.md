@@ -10,13 +10,15 @@ No necesitas instalar nada. Juega directamente desde tu navegador aquí:
 
 ---
 
-## ✨ Novedades: ¡Sistema de Ranking! 🏆
+## ✨ Novedades: ¡Ranking Global! 🏆🌍
 
-¡Ahora tus victorias cuentan! Hemos añadido un sistema de puntuación:
+¡Ahora tus victorias cuentan! Hemos añadido un **sistema de ranking global persistente**:
 
 1.  **Gana la partida:** Adivina el número secreto.
 2.  **Registra tu nombre:** Si ganas, podrás inmortalizar tu hazaña.
-3.  **Compite:** Entra en el **Top 5 de Mejores Jugadores**. ¿Podrás batir el récord de menos intentos?
+3.  **Compite globalmente:** Entra en el **Top 5 de Mejores Jugadores** del mundo. ¿Podrás batir el récord de menos intentos?
+
+**¡El ranking es compartido por todos los jugadores!** Tus puntuaciones se guardan permanentemente en una base de datos PostgreSQL, así que cada victoria cuenta para siempre. 🗄️✨
 
 ---
 
@@ -46,7 +48,7 @@ Si prefieres ejecutar el código en tu propio ordenador o quieres ver cómo est�
 ## 💻 Tecnologías
 
 - **Python & Flask**: El cerebro del juego.
-- **SQLite**: Base de datos para guardar los récords.
+- **PostgreSQL**: Base de datos persistente para guardar los récords globales.
 - **HTML5 & CSS3**: Diseño moderno y responsivo.
 - **Render**: Alojamiento en la nube.
 
