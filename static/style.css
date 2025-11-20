@@ -1,11 +1,30 @@
 :root {
   --bg-color: #0f172a;
   --card-bg: #1e293b;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --text-main: #f8fafc;
+  --text-main: #e2e8f0;
   --text-muted: #94a3b8;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --input-bg: #334155;
+  --border-color: #475569;
+  --gradient-start: #0f172a;
+  --gradient-end: #1e1b4b;
   --accent: #8b5cf6;
+}
+
+/* MODO CLARO */
+body.light-mode {
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --input-bg: #f1f5f9;
+  --border-color: #cbd5e1;
+  --gradient-start: #f0f9ff;
+  --gradient-end: #e0f2fe;
+  --accent: #6366f1;
 }
 
 * {
@@ -16,12 +35,22 @@
 
 body {
   font-family: "Outfit", sans-serif;
-  background-color: var(--bg-color);
+  background: linear-gradient(-45deg, var(--gradient-start), var(--gradient-end), var(--bg-color));
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 0;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .container {
@@ -31,114 +60,215 @@ body {
   text-align: center;
 }
 
-.main-layout {
-  display: grid;
-  grid-template-columns: 3fr 2fr;
-  gap: 2rem;
-  align-items: start;
-  text-align: left;
+/* Theme Toggle */
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    background-color: var(--input-bg);
+}
+
+/* Streak Counter */
+.streak-container {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 h1 {
   font-size: 2.5rem;
   margin-bottom: 2rem;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
+  font-weight: 700;
+  background: linear-gradient(to right, #818cf8, #c084fc);
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 700;
+  color: transparent;
   text-align: center;
 }
 
-.game-card {
+.main-layout {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 2rem;
+    align-items: start;
+    text-align: left;
+}
+
+.game-card, .ranking-card {
   background-color: var(--card-bg);
   padding: 2.5rem;
   border-radius: 1.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3),
-    0 10px 10px -5px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.3s ease;
   backdrop-filter: blur(10px);
-  text-align: center;
 }
 
 .message {
   font-size: 1.25rem;
-  margin-bottom: 2rem;
-  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  min-height: 3rem;
   color: var(--text-main);
+  text-align: center;
+  line-height: 1.6;
 }
 
-.game-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/* History Bubbles */
+.history-container {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
 }
 
-input[type="number"] {
+.history-item {
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.history-item.too-low {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.history-item.too-high {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.arrow { font-size: 0.8rem; }
+
+@keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Ranking Filters */
+.ranking-filters {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background: var(--input-bg);
+    color: var(--text-main);
+    transform: translateY(-1px);
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+}
+
+/* Inputs */
+input[type="number"], input[type="text"] {
   width: 100%;
   padding: 1rem;
-  border-radius: 0.75rem;
-  border: 2px solid #334155;
-  background-color: #0f172a;
-  color: white;
   font-size: 1.1rem;
-  font-family: inherit;
+  border: 2px solid var(--border-color);
+  border-radius: 0.75rem;
+  background-color: var(--input-bg);
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  outline: none;
   transition: all 0.3s ease;
+  font-family: inherit;
   text-align: center;
 }
 
-/* Ocultar flechas del input number */
+input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Ocultar flechas spinner */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
 input[type="number"] {
   -moz-appearance: textfield;
-  appearance: textfield;
 }
 
-input[type="number"]:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-input[type="text"] {
+/* Botones */
+button {
   width: 100%;
   padding: 1rem;
-  border-radius: 0.75rem;
-  border: 2px solid #334155;
-  background-color: #0f172a;
-  color: white;
-  font-size: 1.1rem;
-  font-family: inherit;
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-input[type="text"]:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-button {
-  padding: 1rem;
-  border-radius: 0.75rem;
-  border: none;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
   font-size: 1.1rem;
   font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border: none;
+  border-radius: 0.75rem;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 button:hover {
-  opacity: 0.9;
+  opacity: 0.95;
   transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 button:active {
@@ -147,15 +277,16 @@ button:active {
 
 .restart-btn {
   background: linear-gradient(135deg, #10b981, #059669);
-  width: 100%;
+  margin-top: 1rem;
 }
 
 .stats {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color);
   color: var(--text-muted);
   font-size: 0.9rem;
+  text-align: center;
 }
 
 .stats span {
@@ -164,54 +295,42 @@ button:active {
   font-size: 1.1rem;
 }
 
-.ranking-card {
-    background-color: var(--card-bg);
-    padding: 2rem;
-    border-radius: 1.5rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+.hidden {
+    display: none !important;
 }
 
-@media (max-width: 768px) {
-  .container {
-    max-width: 500px;
-  }
-
-  .main-layout {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-}
-
+/* Table Styles */
 .ranking-card h2 {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
     color: #fbbf24; /* Gold color */
+    text-align: center;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 0.5rem;
 }
 
 th, td {
     padding: 1rem;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 th {
     color: var(--text-muted);
-    font-weight: 500;
-    text-transform: uppercase;
+    font-weight: 600;
     font-size: 0.85rem;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-/* Centrar la columna de Intentos (la segunda columna) */
-th:last-child, 
-td:last-child {
+/* Centrar columna intentos */
+th:last-child, td:last-child {
     text-align: center;
 }
 
@@ -221,7 +340,6 @@ tr:last-child td {
 
 td:first-child {
     font-weight: 600;
-    color: var(--text-main);
 }
 
 td:last-child {
@@ -229,6 +347,30 @@ td:last-child {
     font-weight: 700;
 }
 
-.hidden {
-    display: none !important;
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .main-layout {
+        grid-template-columns: 1fr; /* Stack on mobile */
+        gap: 1.5rem;
+    }
+    
+    .theme-toggle {
+        top: 15px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .game-card, .ranking-card {
+        padding: 1.5rem;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
 }

@@ -15,10 +15,40 @@
   </head>
   <body>
     <div class="container">
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adivina el Número</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Confeti Canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema">
+        <span class="icon">☀️</span>
+    </button>
+
+    <div class="container">
       <h1>🎲 Adivina el Número</h1>
 
       <div class="main-layout">
         <div class="game-card">
+          <!-- Racha Counter -->
+          <div class="streak-container hidden" id="streak-container">
+              🔥 Racha: <span id="streak-count">0</span>
+          </div>
+
           <p id="mensaje" class="message">He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?</p>
 
           <!-- Mensaje de guardado -->
@@ -40,6 +70,11 @@
               />
               <button type="submit">Probar suerte</button>
             </form>
+            
+            <!-- Historial de Intentos -->
+            <div id="history-container" class="history-container">
+                <!-- Los intentos aparecerán aquí -->
+            </div>
           </div>
 
           <!-- Sección de Ganador (Oculta al inicio) -->
@@ -71,36 +106,74 @@
           </div>
         </div>
 
-        {% if top_scores %}
         <div class="ranking-card">
-          <h2>🏆 Top 5 Mejores Jugadores</h2>
-          <table>
+          <h2>🏆 Top 5 Mejores</h2>
+          
+          <!-- Filtros de Ranking -->
+          <div class="ranking-filters">
+              <button class="filter-btn active" data-period="all">Global</button>
+              <button class="filter-btn" data-period="monthly">Mensual</button>
+              <button class="filter-btn" data-period="weekly">Semanal</button>
+          </div>
+
+          <table id="ranking-table">
             <thead>
               <tr>
                 <th>Jugador</th>
                 <th>Intentos</th>
               </tr>
             </thead>
-            <tbody>
-              {% for name, attempts in top_scores %}
-              <tr>
-                <td>{{ name }}</td>
-                <td>{{ attempts }}</td>
-              </tr>
-              {% endfor %}
+            <tbody id="ranking-body">
+              {% if top_scores %}
+                  {% for name, attempts in top_scores %}
+                  <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ attempts }}</td>
+                  </tr>
+                  {% endfor %}
+              {% else %}
+                  <tr><td colspan="2">No hay puntuaciones aún</td></tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
-        {% endif %}
       </div>
     </div>
 
     <script>
-        // Lógica del Juego en Cliente
+        // --- 1. TEMA OSCURO/CLARO ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const icon = themeToggle.querySelector('.icon');
+
+        // Cargar tema guardado
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-mode');
+            icon.textContent = '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            icon.textContent = isLight ? '🌙' : '☀️';
+        });
+
+        // --- 2. LÓGICA DEL JUEGO ---
         let numeroSecreto = Math.floor(Math.random() * 100) + 1;
         let intentos = 0;
         let intentosPrevios = [];
         let juegoTerminado = false;
+        
+        // Racha
+        let racha = parseInt(localStorage.getItem('winStreak') || '0');
+        const streakContainer = document.getElementById('streak-container');
+        const streakCount = document.getElementById('streak-count');
+        
+        if (racha > 0) {
+            streakContainer.classList.remove('hidden');
+            streakCount.textContent = racha;
+        }
 
         const mensajeEl = document.getElementById('mensaje');
         const intentosEl = document.getElementById('intentos-count');
@@ -111,26 +184,24 @@
         const intentosFinalesInput = document.getElementById('intentos_finales_input');
         const restartBtn = document.getElementById('restart-btn');
         const nombreInput = document.getElementById('nombre-input');
+        const historyContainer = document.getElementById('history-container');
 
         console.log("Número secreto (shhh):", numeroSecreto);
 
         guessForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Evitar recarga de página
-            
+            e.preventDefault();
             if (juegoTerminado) return;
 
             const valor = intentoInput.value.trim();
             
-            // 1. Validación: Vacío
             if (!valor) {
                 mensajeEl.textContent = "¡No has escrito nada! Por favor, introduce un número.";
-                mensajeEl.style.color = "#fbbf24"; // Amarillo advertencia
+                mensajeEl.style.color = "#fbbf24";
                 return;
             }
 
             const numero = parseInt(valor);
 
-            // 2. Validación: Rango
             if (isNaN(numero) || numero < 1 || numero > 100) {
                 mensajeEl.textContent = `¡Oye! El ${valor} no vale. Tiene que ser entre 1 y 100.`;
                 mensajeEl.style.color = "#fbbf24";
@@ -138,53 +209,70 @@
                 return;
             }
 
-            // 3. Validación: Repetidos con pista de mayor/menor
             if (intentosPrevios.includes(numero)) {
                 let pista = '';
-                if (numero < numeroSecreto) {
-                    pista = ' (era muy bajo)';
-                } else if (numero > numeroSecreto) {
-                    pista = ' (era muy alto)';
-                }
+                if (numero < numeroSecreto) pista = ' (era muy bajo)';
+                else if (numero > numeroSecreto) pista = ' (era muy alto)';
+                
                 mensajeEl.textContent = `¡Ya dijiste el ${numero}! Prueba con otro diferente${pista}.`;
                 mensajeEl.style.color = "#fbbf24";
                 intentoInput.value = '';
                 return;
             }
 
-            // Si pasa todo, cuenta como intento
+            // Intento válido
             intentos++;
             intentosPrevios.push(numero);
             intentosEl.textContent = intentos;
-            mensajeEl.style.color = "var(--text-main)"; // Color normal
+            mensajeEl.style.color = "var(--text-main)";
 
+            // Añadir al historial visual
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            
             if (numero < numeroSecreto) {
                 mensajeEl.textContent = `El número ${numero} es mas bajo. ¡Inténtalo de nuevo!`;
+                historyItem.innerHTML = `${numero} <span class="arrow up">⬆️</span>`;
+                historyItem.classList.add('too-low');
                 intentoInput.value = '';
                 intentoInput.focus();
             } else if (numero > numeroSecreto) {
                 mensajeEl.textContent = `El número ${numero} es mas alto. ¡Inténtalo de nuevo!`;
+                historyItem.innerHTML = `${numero} <span class="arrow down">⬇️</span>`;
+                historyItem.classList.add('too-high');
                 intentoInput.value = '';
                 intentoInput.focus();
             } else {
                 // ¡GANASTE!
                 juegoTerminado = true;
                 mensajeEl.textContent = `¡Felicidades! Has adivinado el número ${numeroSecreto} en ${intentos} intentos.`;
-                mensajeEl.style.color = "#10b981"; // Verde éxito
+                mensajeEl.style.color = "#10b981";
                 
-                // Cambiar interfaz
+                // Confeti
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                // Actualizar Racha
+                racha++;
+                localStorage.setItem('winStreak', racha);
+                streakCount.textContent = racha;
+                streakContainer.classList.remove('hidden');
+
                 gameSection.classList.add('hidden');
                 winnerSection.classList.remove('hidden');
                 intentosFinalesInput.value = intentos;
-                
-                // Enfocar nombre
                 setTimeout(() => nombreInput.focus(), 100);
+                return; // No añadir al historial si gana
             }
+            
+            historyContainer.prepend(historyItem);
         });
 
         restartBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            // Reiniciar juego
             numeroSecreto = Math.floor(Math.random() * 100) + 1;
             intentos = 0;
             intentosPrevios = [];
@@ -194,12 +282,45 @@
             mensajeEl.style.color = "var(--text-main)";
             intentosEl.textContent = "0";
             intentoInput.value = '';
+            historyContainer.innerHTML = ''; // Limpiar historial
             
             winnerSection.classList.add('hidden');
             gameSection.classList.remove('hidden');
             intentoInput.focus();
-            
             console.log("Nuevo número secreto:", numeroSecreto);
+        });
+
+        // --- 3. FILTROS DE RANKING ---
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const rankingBody = document.getElementById('ranking-body');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                // Activar botón
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const period = btn.dataset.period;
+                
+                // Cargar datos
+                try {
+                    const response = await fetch(`/api/rankings/${period}`);
+                    const data = await response.json();
+                    
+                    // Renderizar tabla
+                    rankingBody.innerHTML = '';
+                    if (data.scores.length === 0) {
+                        rankingBody.innerHTML = '<tr><td colspan="2">No hay puntuaciones aún</td></tr>';
+                    } else {
+                        data.scores.forEach(score => {
+                            const row = `<tr><td>${score.name}</td><td>${score.attempts}</td></tr>`;
+                            rankingBody.innerHTML += row;
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error cargando ranking:', error);
+                }
+            });
         });
     </script>
   </body>
