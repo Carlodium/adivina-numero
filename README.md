@@ -1,42 +1,55 @@
-# Adivina el Número - Web App
+# 🎲 Adivina el Número
 
-Este es un juego interactivo de "Adivina el Número" construido con Python y Flask.
+¡Bienvenido al juego de adivinanzas más adictivo! ¿Serás capaz de adivinar el número secreto en pocos intentos?
 
-## 🎮 Cómo jugar
+## 🎮 ¡JUEGA AHORA!
 
-El juego pensará un número aleatorio entre 1 y 100. Tu objetivo es adivinarlo con el menor número de intentos posible. El juego te dará pistas:
+No necesitas instalar nada. Juega directamente desde tu navegador aquí:
 
-- "Más alto" si te has quedado corto.
-- "Más bajo" si te has pasado.
+👉 **[JUGAR AHORA (Click Aquí)](https://adivina-numero-qv60.onrender.com)** 👈
 
-## 🚀 Instalación Local
+---
 
-1.  Clona el repositorio.
-2.  Instala las dependencias:
+## ✨ Novedades: ¡Sistema de Ranking! 🏆
+
+¡Ahora tus victorias cuentan! Hemos añadido un sistema de puntuación:
+
+1.  **Gana la partida:** Adivina el número secreto.
+2.  **Registra tu nombre:** Si ganas, podrás inmortalizar tu hazaña.
+3.  **Compite:** Entra en el **Top 5 de Mejores Jugadores**. ¿Podrás batir el récord de menos intentos?
+
+---
+
+## 🛠️ Instalación Local (Para Desarrolladores)
+
+Si prefieres ejecutar el código en tu propio ordenador o quieres ver cómo está hecho:
+
+1.  **Clona el repositorio:**
+
+    ```bash
+    git clone https://github.com/Carlodium/adivina-numero.git
+    cd adivina-numero
+    ```
+
+2.  **Instala las dependencias:**
+
     ```bash
     pip install -r requirements.txt
     ```
-3.  Ejecuta la aplicación:
+
+3.  **Ejecuta el juego:**
     ```bash
     python app.py
     ```
-4.  Abre tu navegador en `http://127.0.0.1:5000`.
+    Abre `http://127.0.0.1:5000` en tu navegador.
 
-## 🌐 Despliegue
+## 💻 Tecnologías
 
-Este proyecto está configurado para desplegarse en **Render**.
-Consulta el archivo `deployment.md` para ver la guía paso a paso.
+- **Python & Flask**: El cerebro del juego.
+- **SQLite**: Base de datos para guardar los récords.
+- **HTML5 & CSS3**: Diseño moderno y responsivo.
+- **Render**: Alojamiento en la nube.
 
-## 🛠 Tecnologías
+---
 
-- **Backend**: Python, Flask
-- **Frontend**: HTML5, CSS3 (Diseño Responsive)
-- **Despliegue**: Gunicorn, Render
-
-## 📂 Estructura
-
-- `app.py`: Lógica del servidor.
-- `templates/index.html`: Interfaz de usuario.
-- `static/style.css`: Estilos visuales.
-- `requirements.txt`: Lista de librerías necesarias.
-- `Procfile`: Configuración para Render.
+_Creado por Carlos (Carlodium) con la ayuda de Jose (IA)._
