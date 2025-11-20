@@ -209,6 +209,12 @@ th {
     letter-spacing: 0.05em;
 }
 
+/* Centrar la columna de Intentos (la segunda columna) */
+th:last-child, 
+td:last-child {
+    text-align: center;
+}
+
 tr:last-child td {
     border-bottom: none;
 }
@@ -219,7 +225,6 @@ td:first-child {
 }
 
 td:last-child {
-    text-align: right;
     color: var(--primary);
     font-weight: 700;
 }
