@@ -81,11 +81,13 @@ def index():
             # Validar nombre: máximo 16 caracteres, permite letras, números, guiones y espacios
             if nombre and len(nombre) <= 16 and nombre.replace('_', '').replace('-', '').replace(' ', '').isalnum():
                 save_score(nombre, intentos)
+                return redirect(url_for('index', saved='1'))
             
             return redirect(url_for('index'))
 
     top_scores = get_top_scores()
-    return render_template('index.html', top_scores=top_scores)
+    saved = request.args.get('saved')
+    return render_template('index.html', top_scores=top_scores, saved=saved)
 
 if __name__ == '__main__':
     app.run(debug=True)

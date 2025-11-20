@@ -21,6 +21,13 @@
         <div class="game-card">
           <p id="mensaje" class="message">He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?</p>
 
+          <!-- Mensaje de guardado -->
+          {% if saved %}
+            <p class="message" style="color:#10b981; font-weight:600;">
+              ✅ ¡Puntuación guardada con éxito!
+            </p>
+          {% endif %}
+
           <!-- Sección de Juego -->
           <div id="game-section">
             <form id="guess-form" class="game-form">
@@ -131,9 +138,15 @@
                 return;
             }
 
-            // 3. Validación: Repetidos
+            // 3. Validación: Repetidos con pista de mayor/menor
             if (intentosPrevios.includes(numero)) {
-                mensajeEl.textContent = `¡Ya dijiste el ${numero}! Prueba con otro diferente.`;
+                let pista = '';
+                if (numero < numeroSecreto) {
+                    pista = ' (era muy bajo)';
+                } else if (numero > numeroSecreto) {
+                    pista = ' (era muy alto)';
+                }
+                mensajeEl.textContent = `¡Ya dijiste el ${numero}! Prueba con otro diferente${pista}.`;
                 mensajeEl.style.color = "#fbbf24";
                 intentoInput.value = '';
                 return;
@@ -146,11 +159,11 @@
             mensajeEl.style.color = "var(--text-main)"; // Color normal
 
             if (numero < numeroSecreto) {
-                mensajeEl.textContent = `El número ${numero} es demasiado bajo. ¡Inténtalo de nuevo!`;
+                mensajeEl.textContent = `El número ${numero} es mas bajo. ¡Inténtalo de nuevo!`;
                 intentoInput.value = '';
                 intentoInput.focus();
             } else if (numero > numeroSecreto) {
-                mensajeEl.textContent = `El número ${numero} es demasiado alto. ¡Inténtalo de nuevo!`;
+                mensajeEl.textContent = `El número ${numero} es mas alto. ¡Inténtalo de nuevo!`;
                 intentoInput.value = '';
                 intentoInput.focus();
             } else {
