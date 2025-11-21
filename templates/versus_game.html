@@ -159,6 +159,11 @@
                 guessInput.value = '';
             }
         }
+
+        // Prevent FOUC
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
     </script>
 </body>
 </html>

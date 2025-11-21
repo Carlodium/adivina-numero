@@ -196,6 +196,11 @@
         btnStart.addEventListener('click', () => {
             socket.emit('start_game', { room_code: myRoomCode });
         });
+
+        // Prevent FOUC
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
     </script>
 </body>
 </html>
