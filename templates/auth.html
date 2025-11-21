@@ -129,6 +129,11 @@
                 errorMsg.textContent = "Error de conexión";
             }
         });
+
+        // Prevent FOUC
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
     </script>
 </body>
 </html>
