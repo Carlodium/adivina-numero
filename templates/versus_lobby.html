@@ -109,6 +109,11 @@
     </div>
 
     <script>
+        // Fade in effect
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+        });
+
         // Theme persistence
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light') {
