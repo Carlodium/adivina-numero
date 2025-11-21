@@ -42,7 +42,7 @@ body {
   justify-content: center;
   align-items: center;
   margin: 0;
-  transition: background 0.5s ease, color 0.5s ease;
+  transition: background 1s ease, color 1s ease;
   overflow-x: hidden; /* Evitar scroll horizontal por animaciones */
   position: relative;
 }
@@ -614,6 +614,20 @@ td:last-child {
 }
 
 .game-card-preview:hover .game-overlay {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.game-overlay p {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.play-btn {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    padding: 0.8rem 2rem;
     border-radius: 50px;
     text-decoration: none;
     font-weight: 700;
@@ -743,8 +757,8 @@ input:checked + .slider .icon-sun { opacity: 1; }
     gap: 1rem;
     margin-top: 1rem;
     justify-content: center;
-    position: relative; /* Ensure z-index works */
-    z-index: 200; /* Higher than stars */
+    position: relative;
+    z-index: 200;
 }
 
 .btn-auth {
@@ -757,7 +771,7 @@ input:checked + .slider .icon-sun { opacity: 1; }
     align-items: center;
     gap: 0.5rem;
     position: relative;
-    z-index: 201; /* Ensure clickable */
+    z-index: 201;
 }
 
 .btn-login {
