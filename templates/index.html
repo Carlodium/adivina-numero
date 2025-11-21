@@ -14,23 +14,6 @@
     />
   </head>
   <body>
-    <div class="container">
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Adivina el Número</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
     <!-- Confeti Canvas -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -87,22 +70,25 @@
 
           <!-- Sección de Ganador (Oculta al inicio) -->
           <div id="winner-section" class="hidden">
-            <form method="POST" class="game-form">
-              <input type="hidden" name="intentos_finales" id="intentos_finales_input">
-              <input
-                type="text"
-                name="nombre"
-                placeholder="¡Escribe tu nombre, campeón!"
-                maxlength="16"
-                pattern="[A-Za-z0-9 _-]+"
-                title="Máximo 16 caracteres. Letras, números y espacios."
-                required
-                autocomplete="off"
-                id="nombre-input"
-              />
-              <button type="submit" name="guardar_score" value="true">
-                Guardar Puntuación
-              </button>
+            <form action="/" method="POST" class="score-form">
+                <input type="hidden" name="guardar_score" value="1">
+                <input type="hidden" name="intentos_finales" id="intentos_finales_input">
+                <input type="hidden" name="device" id="device-input">
+                
+                <input
+                  type="text"
+                  name="nombre"
+                  placeholder="¡Escribe tu nombre, campeón!"
+                  maxlength="16"
+                  pattern="[A-Za-z0-9 _-]+"
+                  title="Máximo 16 caracteres. Letras, números y espacios."
+                  required
+                  autocomplete="off"
+                  id="nombre-input"
+                />
+                <button type="submit">
+                  Guardar Puntuación
+                </button>
             </form>
             <button id="restart-btn" class="restart-btn" style="margin-top: 1rem;">
                 Jugar de nuevo
@@ -115,7 +101,7 @@
         </div>
 
         <div class="ranking-card">
-          <h2>🏆 Top 5 Mejores</h2>
+          <h2>🏆 Top 5 Ranking</h2>
           
           <!-- Filtros de Ranking -->
           <div class="ranking-filters">
@@ -128,19 +114,23 @@
             <thead>
               <tr>
                 <th>Jugador</th>
+                <th>Disp.</th>
                 <th>Intentos</th>
               </tr>
             </thead>
             <tbody id="ranking-body">
               {% if top_scores %}
-                  {% for name, attempts in top_scores %}
+                  {% for score in top_scores %}
                   <tr>
-                    <td>{{ name }}</td>
-                    <td>{{ attempts }}</td>
+                    <td>{{ score[0] }}</td>
+                    <td class="device-icon">
+                        {% if score[2] == 'Mobile' %}📱{% else %}💻{% endif %}
+                    </td>
+                    <td>{{ score[1] }}</td>
                   </tr>
                   {% endfor %}
               {% else %}
-                  <tr><td colspan="2">No hay puntuaciones aún</td></tr>
+                  <tr><td colspan="3" style="text-align: center;">No hay puntuaciones aún</td></tr>
               {% endif %}
             </tbody>
           </table>
@@ -149,6 +139,11 @@
     </div>
 
     <script>
+        // --- DETECCIÓN DE DISPOSITIVO ---
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+        const deviceType = isMobile ? 'Mobile' : 'Desktop';
+        document.getElementById('device-input').value = deviceType;
+
         // --- 1. TEMA OSCURO/CLARO ---
         const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
         const body = document.body;
@@ -323,10 +318,16 @@
                     // Renderizar tabla
                     rankingBody.innerHTML = '';
                     if (data.scores.length === 0) {
-                        rankingBody.innerHTML = '<tr><td colspan="2">No hay puntuaciones aún</td></tr>';
+                        rankingBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay puntuaciones aún</td></tr>';
                     } else {
                         data.scores.forEach(score => {
-                            const row = `<tr><td>${score.name}</td><td>${score.attempts}</td></tr>`;
+                            const icon = score.device === 'Mobile' ? '📱' : '💻';
+                            const row = `
+                                <tr>
+                                    <td>${score.name}</td>
+                                    <td class="device-icon">${icon}</td>
+                                    <td>${score.attempts}</td>
+                                </tr>`;
                             rankingBody.innerHTML += row;
                         });
                     }

@@ -466,6 +466,11 @@ td:last-child {
     font-weight: 700;
 }
 
+.device-icon {
+    text-align: center;
+    font-size: 1.2rem;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .container {
