@@ -393,13 +393,12 @@ def versus_game(room_code):
 @app.route('/admin/users')
 def admin_users():
     # Simple security: Must be logged in. 
-    # Ideally check for specific admin username, e.g. 'Carlodium'
     if 'user_id' not in session:
         return redirect(url_for('auth_page'))
         
-    # Optional: Restrict to specific username
-    # if session.get('username') != 'Carlodium':
-    #     return "Acceso Denegado", 403
+    # Restrict to specific username
+    if session.get('username') != 'Admin':
+        return "Acceso Denegado. Solo el usuario 'Admin' puede ver esto.", 403
 
     conn = get_db_connection()
     c = conn.cursor()
