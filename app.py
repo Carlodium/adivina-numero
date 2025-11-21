@@ -10,7 +10,7 @@ import events
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'super_secret_arcade_key_123')
-socketio = SocketIO(app, async_mode='eventlet')
+socketio = SocketIO(app)
 
 # Register SocketIO events
 events.register_events(socketio)
