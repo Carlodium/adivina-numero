@@ -400,32 +400,38 @@ def admin_users():
     if session.get('username') != 'Admin':
         return "Acceso Denegado. Solo el usuario 'Admin' puede ver esto.", 403
 
-    conn = get_db_connection()
-    c = conn.cursor()
-    
-    # Query: Get users and their latest score date
-    query = '''
-        SELECT u.id, u.username, u.created_at, MAX(s.created_at) as last_activity 
-        FROM users u 
-        LEFT JOIN scores s ON u.id = s.user_id 
-        GROUP BY u.id, u.username, u.created_at 
-        ORDER BY u.id ASC
-    '''
-    
-    c.execute(query)
-    rows = c.fetchall()
-    conn.close()
-    
-    users_data = []
-    for r in rows:
-        users_data.append({
-            'id': r[0],
-            'username': r[1],
-            'created_at': r[2],
-            'last_activity': r[3]
-        })
+    try:
+        conn = get_db_connection()
+        c = conn.cursor()
         
-    return render_template('admin_users.html', users=users_data)
+        # Query: Get users and their latest score date
+        # Note: SQLite and Postgres handle GROUP BY slightly differently, but this query should work for both
+        # provided columns are in GROUP BY.
+        
+        query = '''
+            SELECT u.id, u.username, u.created_at, MAX(s.created_at) as last_activity 
+            FROM users u 
+            LEFT JOIN scores s ON u.id = s.user_id 
+            GROUP BY u.id, u.username, u.created_at 
+            ORDER BY u.id ASC
+        '''
+        
+        c.execute(query)
+        rows = c.fetchall()
+        conn.close()
+        
+        users_data = []
+        for r in rows:
+            users_data.append({
+                'id': r[0],
+                'username': r[1],
+                'created_at': r[2],
+                'last_activity': r[3]
+            })
+            
+        return render_template('admin_users.html', users=users_data)
+    except Exception as e:
+        return f"<h1>Error cargando panel:</h1><p>{str(e)}</p>", 500
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
