@@ -390,5 +390,43 @@ def versus_game(room_code):
     """Game room page."""
     return render_template('versus_game.html', room_code=room_code)
 
+@app.route('/admin/users')
+def admin_users():
+    # Simple security: Must be logged in. 
+    # Ideally check for specific admin username, e.g. 'Carlodium'
+    if 'user_id' not in session:
+        return redirect(url_for('auth_page'))
+        
+    # Optional: Restrict to specific username
+    # if session.get('username') != 'Carlodium':
+    #     return "Acceso Denegado", 403
+
+    conn = get_db_connection()
+    c = conn.cursor()
+    
+    # Query: Get users and their latest score date
+    query = '''
+        SELECT u.id, u.username, u.created_at, MAX(s.created_at) as last_activity 
+        FROM users u 
+        LEFT JOIN scores s ON u.id = s.user_id 
+        GROUP BY u.id, u.username, u.created_at 
+        ORDER BY u.id ASC
+    '''
+    
+    c.execute(query)
+    rows = c.fetchall()
+    conn.close()
+    
+    users_data = []
+    for r in rows:
+        users_data.append({
+            'id': r[0],
+            'username': r[1],
+            'created_at': r[2],
+            'last_activity': r[3]
+        })
+        
+    return render_template('admin_users.html', users=users_data)
+
 if __name__ == '__main__':
     socketio.run(app, debug=True)
