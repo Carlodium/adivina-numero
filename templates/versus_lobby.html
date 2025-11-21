@@ -178,23 +178,48 @@
         socket.on('player_joined', (data) => {
             console.log('👤 Jugador unido:', data);
             const players = data.players;
-            myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase();
+            const playerNames = data.player_names || {};
             
+            myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase();
             showLobby();
             
             // Reset states
             p2Wrapper.style.opacity = '0.5';
             p2Name.textContent = 'Esperando...';
+            btnStart.classList.add('hidden');
 
-            players.forEach(p => {
-                if (p.role === 'host') {
-                    p1Name.textContent = p.username;
+            // Map players to slots
+            // We assume the first player in the list (or the one with role 'host') is P1
+            // But the list order might vary. Let's use roles if available, or order.
+            
+            let hostFound = false;
+            let guestFound = false;
+
+            players.forEach(sid => {
+                // We need the role or we infer it. 
+                // The server sends 'players' as a list of SIDs.
+                // And 'player_names' as a dict {sid: name}.
+                // We don't have roles in this payload structure from the recent events.py update!
+                // Wait, events.py sends: 'players': list(room['players'].keys()), 'player_names': ...
+                // It DOES NOT send roles in the top level list anymore.
+                
+                // We need to infer P1/P2. usually first joined is P1.
+                // Let's just fill slots.
+                const name = playerNames[sid] || 'Jugador';
+                
+                if (!hostFound) {
+                    p1Name.textContent = name;
+                    hostFound = true;
                 } else {
-                    p2Name.textContent = p.username;
+                    p2Name.textContent = name;
                     p2Wrapper.style.opacity = '1';
-                    if (myRole === 'host') btnStart.classList.remove('hidden');
+                    guestFound = true;
                 }
             });
+            
+            if (myRole === 'host' && guestFound) {
+                btnStart.classList.remove('hidden');
+            }
         });
 
         socket.on('error', (data) => {

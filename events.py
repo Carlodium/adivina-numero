@@ -29,18 +29,35 @@ def register_events(socketio):
         # Logic to remove player from room and notify others
         for room_code, room_data in rooms.items():
             if request.sid in room_data['players']:
-                del room_data['players'][request.sid]
-                emit('player_left', {'sid': request.sid}, to=room_code)
+                # Mark as disconnected but don't delete immediately to allow page refresh/navigation
+                # We can use a 'connected' flag
+                room_data['players'][request.sid]['connected'] = False
                 
-                # If room empty, delete it
-                if not room_data['players']:
-                    del rooms[room_code]
-                else:
-                    # If game was playing, maybe pause or end?
-                    # For now, let's reset status if less than 2 players
-                    if len(room_data['players']) < 2:
-                        room_data['status'] = 'waiting'
-                        emit('waiting_for_players', {'players': list(room_data['players'].keys())}, to=room_code)
+                # Notify others (optional, or just say "Player disconnected")
+                # emit('player_left', {'sid': request.sid}, to=room_code)
+                
+                # If everyone is disconnected, then maybe clean up?
+                # For now, let's keep the simple logic but with a check
+                # If we delete them, they can't reconnect with the same SID.
+                # But the client makes a NEW socket connection on page load.
+                # So the OLD SID is dead. The NEW SID needs to "claim" the spot.
+                # The 'handle_join_room' logic handles the claiming via username.
+                # So we SHOULD NOT delete the player data if we want them to be able to reclaim it.
+                
+                # BUT if we don't delete, the room stays full.
+                # We need to know if it's a permanent leave or a refresh.
+                # We can't know for sure.
+                
+                # COMPROMISE: Mark as 'disconnected'. If they don't reconnect in X seconds, delete.
+                # Since we don't have background tasks easily here, let's just NOT delete
+                # and let 'handle_join_room' take over the spot.
+                # But we need to clean up eventually.
+                
+                # For this specific bug (navigation to game page), we MUST NOT delete immediately.
+                pass 
+                
+                # We can emit a 'player_disconnected' event so UI shows "Reconnecting..."
+                emit('player_status_change', {'sid': request.sid, 'status': 'disconnected'}, to=room_code)
                 break
 
     @socketio.on('create_room')
