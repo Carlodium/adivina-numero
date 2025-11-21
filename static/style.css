@@ -466,9 +466,26 @@ td:last-child {
     font-weight: 700;
 }
 
-.device-icon {
-    text-align: center;
+td:last-child {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.badges-cell {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
     font-size: 1.2rem;
+}
+
+.badge {
+    cursor: help;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: inline-block;
+}
+
+.badge:hover {
+    transform: scale(1.5);
 }
 
 /* Mobile Responsive */

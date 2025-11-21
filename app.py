@@ -1,32 +1,27 @@
-from flask import Flask, render_template, request, session, redirect, url_for
-import random
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+import sqlite3
 import os
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get('SECRET_KEY', 'super_secret_arcade_key_123')
 
 def get_db_connection():
-    """Get database connection from environment variable or use SQLite locally"""
     database_url = os.environ.get('DATABASE_URL')
     if database_url:
-        # PostgreSQL (production on Render)
-        return psycopg2.connect(database_url)
+        conn = psycopg2.connect(database_url)
     else:
-        # SQLite (local development)
-        import sqlite3
-        return sqlite3.connect('scores.db')
+        conn = sqlite3.connect('scores.db')
+    return conn
 
 def init_db():
     conn = get_db_connection()
     c = conn.cursor()
     
-    # Crear tabla si no existe
-    # Nota: En SQLite usamos AUTOINCREMENT, en Postgres SERIAL (que se maneja al crear).
-    # Para simplificar la query compatible, asumimos creación básica.
-    # Si es Postgres, la tabla persistente ya existe.
-    try:
+    # Tabla Scores
+    if os.environ.get('DATABASE_URL'):
+        # PostgreSQL
         c.execute('''
             CREATE TABLE IF NOT EXISTS scores (
                 id SERIAL PRIMARY KEY,
@@ -35,38 +30,86 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-    except Exception:
-        # Fallback para SQLite local si falla la sintaxis de Postgres
-        try:
-            c.execute('''
-                CREATE TABLE IF NOT EXISTS scores (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    attempts INTEGER NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-        except Exception:
-            pass
+        # Tabla Users (Postgres)
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+    else:
+        # SQLite
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                attempts INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        # Tabla Users (SQLite)
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
 
     # Migración: Añadir columna 'device' si no existe
     try:
-        # Intentamos añadir la columna. Si ya existe, fallará y lo ignoramos.
         c.execute('ALTER TABLE scores ADD COLUMN device TEXT DEFAULT \'Desktop\'')
         conn.commit()
     except Exception:
         conn.rollback()
-        
+
+    # Migración: Añadir columna 'user_id' si no existe
+    try:
+        if os.environ.get('DATABASE_URL'):
+            c.execute('ALTER TABLE scores ADD COLUMN user_id INTEGER REFERENCES users(id)')
+        else:
+            c.execute('ALTER TABLE scores ADD COLUMN user_id INTEGER REFERENCES users(id)')
+        conn.commit()
+    except Exception:
+        conn.rollback()
+
     conn.commit()
     conn.close()
 
-def save_score(name, attempts, device):
+def save_score(name, attempts, device, user_id=None):
     conn = get_db_connection()
     c = conn.cursor()
-    # created_at se pone solo por el DEFAULT
-    c.execute('INSERT INTO scores (name, attempts, device) VALUES (%s, %s, %s)', (name, attempts, device))
+    
+    # Si el usuario está logueado, comprobamos Personal Best
+    if user_id:
+        # Buscar mejor puntuación actual
+        if os.environ.get('DATABASE_URL'):
+            c.execute('SELECT MIN(attempts) FROM scores WHERE user_id = %s', (user_id,))
+        else:
+            c.execute('SELECT MIN(attempts) FROM scores WHERE user_id = ?', (user_id,))
+            
+        result = c.fetchone()
+        current_best = result[0] if result and result[0] is not None else 9999
+        
+        if attempts >= current_best:
+            # No es récord personal, no guardamos
+            conn.close()
+            return False # Indica que no fue récord
+
+    # Guardar puntuación
+    if os.environ.get('DATABASE_URL'):
+        c.execute('INSERT INTO scores (name, attempts, device, user_id) VALUES (%s, %s, %s, %s)', 
+                 (name, attempts, device, user_id))
+    else:
+        c.execute('INSERT INTO scores (name, attempts, device, user_id) VALUES (?, ?, ?, ?)', 
+                 (name, attempts, device, user_id))
+                 
     conn.commit()
     conn.close()
+    return True
 
 def get_top_scores(period='all'):
     conn = get_db_connection()
@@ -102,13 +145,90 @@ init_db()
 def index():
     return render_template('hub.html')
 
+@app.route('/auth')
+def auth_page():
+    if 'user_id' in session:
+        return redirect(url_for('index'))
+    return render_template('auth.html')
+
+# --- AUTH ROUTES ---
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    if not username or not password:
+        return {'success': False, 'message': 'Faltan datos'}
+        
+    conn = get_db_connection()
+    c = conn.cursor()
+    
+    try:
+        hashed_pw = generate_password_hash(password)
+        if os.environ.get('DATABASE_URL'):
+            c.execute('INSERT INTO users (username, password_hash) VALUES (%s, %s)', (username, hashed_pw))
+        else:
+            c.execute('INSERT INTO users (username, password_hash) VALUES (?, ?)', (username, hashed_pw))
+        conn.commit()
+        
+        # Auto login logic
+        # For simplicity in this step, we just return success and let frontend handle login or ask user to login
+        return {'success': True}
+    except Exception as e:
+        return {'success': False, 'message': 'El usuario ya existe'}
+    finally:
+        conn.close()
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    conn = get_db_connection()
+    c = conn.cursor()
+    
+    if os.environ.get('DATABASE_URL'):
+        c.execute('SELECT id, password_hash FROM users WHERE username = %s', (username,))
+    else:
+        c.execute('SELECT id, password_hash FROM users WHERE username = ?', (username,))
+        
+    user = c.fetchone()
+    conn.close()
+    
+    if user and check_password_hash(user[1], password):
+        session['user_id'] = user[0]
+        session['username'] = username
+        return {'success': True}
+    
+    return {'success': False, 'message': 'Usuario o contraseña incorrectos'}
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+@app.route('/check_auth')
+def check_auth():
+    if 'user_id' in session:
+        return {'authenticated': True, 'username': session['username']}
+    return {'authenticated': False}
+
 @app.route('/adivina', methods=['GET', 'POST'])
 def adivina():
     if request.method == 'POST':
         if 'guardar_score' in request.form:
-            nombre = request.form.get('nombre', '').strip()
+            # Si está logueado, usamos su nombre de usuario
+            if 'user_id' in session:
+                nombre = session['username']
+                user_id = session['user_id']
+            else:
+                nombre = request.form.get('nombre', '').strip()
+                user_id = None
+
             intentos_str = request.form.get('intentos_finales')
-            device = request.form.get('device', 'Desktop') # Recibir dispositivo
+            device = request.form.get('device', 'Desktop')
             
             try:
                 intentos = int(intentos_str)
@@ -116,27 +236,54 @@ def adivina():
                 intentos = 999
 
             if nombre and len(nombre) <= 16 and nombre.replace('_', '').replace('-', '').replace(' ', '').isalnum():
-                save_score(nombre, intentos, device)
-                return redirect(url_for('adivina', saved='1'))
+                is_record = save_score(nombre, intentos, device, user_id)
+                return redirect(url_for('adivina', saved='1', record=str(is_record).lower()))
             
             return redirect(url_for('adivina'))
 
     # Por defecto mostramos el global
     top_scores = get_top_scores('all')
     saved = request.args.get('saved')
-    return render_template('game.html', top_scores=top_scores, saved=saved)
+    record = request.args.get('record') # 'true' or 'false'
+    return render_template('game.html', top_scores=top_scores, saved=saved, record=record)
 
 @app.route('/api/rankings/<period>')
 def api_rankings(period):
     if period not in ['all', 'weekly', 'monthly']:
         period = 'all'
     scores = get_top_scores(period)
-    # Incluir device en la respuesta JSON
-    # s[0]=name, s[1]=attempts, s[2]=device (si existe, sino Desktop)
+    
     scores_list = []
     for s in scores:
+        name = s[0]
+        attempts = s[1]
         device = s[2] if len(s) > 2 and s[2] else 'Desktop'
-        scores_list.append({'name': s[0], 'attempts': s[1], 'device': device})
+        
+        # --- BADGE LOGIC ---
+        badges = []
+        
+        # 1. Device Badge
+        if device == 'Mobile':
+            badges.append({'icon': '📱', 'title': 'Jugador Móvil', 'class': 'badge-mobile'})
+        else:
+            badges.append({'icon': '💻', 'title': 'Jugador PC', 'class': 'badge-desktop'})
+            
+        # 2. Performance Badges
+        if attempts == 1:
+            badges.append({'icon': '🎯', 'title': 'Francotirador (1 intento)', 'class': 'badge-sniper'})
+        elif attempts <= 4:
+            badges.append({'icon': '🧠', 'title': 'Genio (2-4 intentos)', 'class': 'badge-genius'})
+        elif attempts <= 7:
+            badges.append({'icon': '⚡', 'title': 'Veloz (5-7 intentos)', 'class': 'badge-fast'})
+        elif attempts > 10:
+            badges.append({'icon': '🐢', 'title': 'Persistente (>10 intentos)', 'class': 'badge-persistent'})
+
+        scores_list.append({
+            'name': name, 
+            'attempts': attempts, 
+            'device': device,
+            'badges': badges
+        })
         
     return {'scores': scores_list}
 

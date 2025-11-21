@@ -15,6 +15,14 @@
 
     <div class="container hub-container">
         <header class="hub-header">
+            <div class="auth-status" style="position: absolute; top: 1rem; right: 1rem;">
+                {% if session.get('user_id') %}
+                    <span style="color: var(--primary); font-weight: bold; margin-right: 1rem;">👤 {{ session.get('username') }}</span>
+                    <a href="/logout" class="play-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(255,255,255,0.1);">Salir</a>
+                {% else %}
+                    <a href="/auth" class="play-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">🔑 Acceso</a>
+                {% endif %}
+            </div>
             <h1>👾 Carlodium Arcade</h1>
             <p>Selecciona tu aventura y demuestra tu habilidad</p>
         </header>
