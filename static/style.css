@@ -42,9 +42,17 @@ body {
   justify-content: center;
   align-items: center;
   margin: 0;
-  transition: background 1s ease, color 1s ease;
+  transition: background 1s ease, color 1s ease, opacity 0.3s ease;
   overflow-x: hidden; /* Evitar scroll horizontal por animaciones */
   position: relative;
+  opacity: 0;
+  animation: bodyFadeIn 0.3s ease 0.1s forwards;
+}
+
+@keyframes bodyFadeIn {
+  to {
+    opacity: 1;
+  }
 }
 
 /* Fondo Marea (Gradiente Animado) - MÁS OSCURO */
