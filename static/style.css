@@ -676,15 +676,15 @@ td:last-child {
   align-items: center;
   position: absolute;
   top: 20px;
-  right: 20px;
+  left: 20px; /* Moved to left to avoid overlap with Auth buttons */
   z-index: 100;
 }
 
 .theme-switch {
   display: inline-block;
-  height: 34px;
+  height: 40px; /* Increased size */
   position: relative;
-  width: 60px;
+  width: 70px; /* Increased size */
 }
 
 .theme-switch input {
@@ -704,7 +704,7 @@ td:last-child {
 }
 
 .slider:before {
-  display: none; /* Custom knob used instead */
+  display: none;
 }
 
 .slider.round {
@@ -713,18 +713,18 @@ td:last-child {
 
 .slider-knob {
   background-color: var(--primary);
-  bottom: 4px;
+  bottom: 5px;
   content: "";
-  height: 26px;
-  left: 4px;
+  height: 30px; /* Increased size */
+  left: 5px;
   position: absolute;
   transition: .4s;
-  width: 26px;
+  width: 30px; /* Increased size */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 18px; /* Increased icon size */
   box-shadow: 0 0 10px var(--primary);
 }
 
@@ -733,21 +733,23 @@ td:last-child {
     transition: opacity 0.3s;
 }
 
-.icon-moon { opacity: 0; }
-.icon-sun { opacity: 1; }
+/* Default (Unchecked/Dark Mode) -> Show Moon */
+.icon-moon { opacity: 1; }
+.icon-sun { opacity: 0; }
 
 input:checked + .slider {
   background-color: var(--input-bg);
 }
 
 input:checked + .slider .slider-knob {
-  transform: translateX(26px);
-  background-color: #fbbf24; /* Sun color */
+  transform: translateX(30px); /* Adjusted for new width */
+  background-color: #fbbf24;
   box-shadow: 0 0 10px #fbbf24;
 }
 
-input:checked + .slider .icon-moon { opacity: 1; }
-input:checked + .slider .icon-sun { opacity: 0; }
+/* Checked (Light Mode) -> Show Sun */
+input:checked + .slider .icon-moon { opacity: 0; }
+input:checked + .slider .icon-sun { opacity: 1; }
 
 /* --- HUB AUTH BUTTONS --- */
 .hub-auth-buttons {
