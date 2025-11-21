@@ -156,7 +156,11 @@
             updateTurnUI(data.first_turn);
         });
 
+        const guessedNumbers = new Set();
+
         socket.on('turn_result', (data) => {
+            guessedNumbers.add(data.guess);
+            
             const isMe = data.player === socket.id;
             const color = isMe ? 'var(--primary)' : '#ef4444';
             const text = data.result === 'low' ? 'Muy bajo ⬆️' : 'Muy alto ⬇️';
@@ -179,11 +183,38 @@
             document.getElementById('secret-number').textContent = data.number;
             gameOverModal.classList.remove('hidden');
             updateStatus("🏁 Partida terminada");
+            guessedNumbers.clear(); // Reset for next game
         });
         
         socket.on('rematch_update', (data) => {
             rematchCount.textContent = data.votes;
             btnRematch.textContent = `Volver a Jugar (${data.votes}/2)`;
+        });
+
+        socket.on('player_left_gameroom', (data) => {
+            console.log('⚠️ Player left:', data);
+            
+            // If game over modal is open
+            if (!gameOverModal.classList.contains('hidden')) {
+                btnRematch.style.display = 'none';
+                
+                // Check if message already exists
+                if (!document.getElementById('disconnect-msg')) {
+                    const msg = document.createElement('div');
+                    msg.id = 'disconnect-msg';
+                    msg.className = 'chat-msg system-msg';
+                    msg.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                    msg.style.marginTop = '1rem';
+                    msg.innerHTML = "⚠️ <strong>El rival ha abandonado la sala.</strong><br>No es posible la revancha.";
+                    
+                    // Insert before the buttons
+                    const btnContainer = gameOverModal.querySelector('div[style*="display: flex"]');
+                    gameOverModal.insertBefore(msg, btnContainer);
+                }
+            } else {
+                // In game notification
+                addSystemMessage("⚠️ <strong>El rival se ha desconectado.</strong><br>Esperando reconexión...");
+            }
         });
 
         // --- HELPERS ---
@@ -233,8 +264,33 @@
         }
 
         function sendGuess() {
-            const val = guessInput.value;
-            if (val) {
+            const val = parseInt(guessInput.value);
+            
+            // Local Validation
+            if (isNaN(val) || val < 1 || val > 100) {
+                // Show temporary error in status
+                const oldText = statusMsg.textContent;
+                statusMsg.textContent = "❌ Introduce un número entre 1 y 100";
+                statusMsg.style.color = "#ef4444";
+                setTimeout(() => {
+                    statusMsg.textContent = oldText;
+                    statusMsg.style.color = "var(--primary)";
+                }, 2000);
+                return;
+            }
+            
+            if (guessedNumbers.has(val)) {
+                const oldText = statusMsg.textContent;
+                statusMsg.textContent = "❌ ¡Ese número ya se ha dicho!";
+                statusMsg.style.color = "#ef4444";
+                setTimeout(() => {
+                    statusMsg.textContent = oldText;
+                    statusMsg.style.color = "var(--primary)";
+                }, 2000);
+                return;
+            }
+
+            if (val && myTurn) {
                 socket.emit('make_guess', { room_code: roomCode, guess: val });
                 guessInput.value = '';
             }
