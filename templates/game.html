@@ -42,30 +42,6 @@
           </div>
 
           <p id="mensaje" class="message">He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?</p>
-
-          <!-- Mensaje de guardado -->
-          <!-- Mensaje de guardado -->
-          {% if saved %}
-            {% if record == 'true' %}
-                <p class="message" style="color:#f59e0b; font-weight:700; font-size: 1.2rem;">
-                  🏆 ¡NUEVO RÉCORD PERSONAL! 🏆
-                </p>
-            {% elif record == 'false' %}
-                <p class="message" style="color:#94a3b8; font-weight:600;">
-                  💾 Puntuación guardada (No superaste tu récord)
-                </p>
-            {% else %}
-                <p class="message" style="color:#10b981; font-weight:600;">
-                  ✅ ¡Puntuación guardada con éxito!
-                </p>
-            {% endif %}
-          {% endif %}
-
-          <!-- Sección de Juego -->
-          <div id="game-section">
-            <form id="guess-form" class="game-form">
-              <input
-                type="number"
                 id="intento"
                 placeholder="Introduce un número..."
                 autofocus

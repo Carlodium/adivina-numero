@@ -195,6 +195,12 @@ def register():
         session['user_id'] = user_id
         session['username'] = username
         
+        # Check for pending score
+        if 'pending_score' in session:
+            score_data = session['pending_score']
+            save_score(username, score_data['attempts'], score_data['device'], user_id)
+            session.pop('pending_score', None)
+
         return {'success': True}
     except (sqlite3.IntegrityError, psycopg2.IntegrityError):
         return {'success': False, 'message': 'El usuario ya existe'}
@@ -224,6 +230,13 @@ def login():
     if user and check_password_hash(user[1], password):
         session['user_id'] = user[0]
         session['username'] = username
+        
+        # Check for pending score
+        if 'pending_score' in session:
+            score_data = session['pending_score']
+            save_score(username, score_data['attempts'], score_data['device'], user[0])
+            session.pop('pending_score', None)
+            
         return {'success': True}
     
     return {'success': False, 'message': 'Usuario o contraseña incorrectos'}
@@ -243,33 +256,39 @@ def check_auth():
 def adivina():
     if request.method == 'POST':
         if 'guardar_score' in request.form:
-            # Si está logueado, usamos su nombre de usuario
+            # Si está logueado, guardamos
             if 'user_id' in session:
                 nombre = session['username']
                 user_id = session['user_id']
-            else:
-                nombre = request.form.get('nombre', '').strip()
-                user_id = None
+                intentos_str = request.form.get('intentos_finales')
+                device = request.form.get('device', 'Desktop')
+                
+                try:
+                    intentos = int(intentos_str)
+                except (ValueError, TypeError):
+                    intentos = 999
 
-            intentos_str = request.form.get('intentos_finales')
-            device = request.form.get('device', 'Desktop')
-            
-            try:
-                intentos = int(intentos_str)
-            except (ValueError, TypeError):
-                intentos = 999
-
-            if nombre and len(nombre) <= 16 and nombre.replace('_', '').replace('-', '').replace(' ', '').isalnum():
                 is_record = save_score(nombre, intentos, device, user_id)
                 return redirect(url_for('adivina', saved='1', record=str(is_record).lower()))
             
-            return redirect(url_for('adivina'))
+            else:
+                # GUEST MODE: No guardamos en DB, guardamos en sesión para registro posterior
+                intentos_str = request.form.get('intentos_finales')
+                device = request.form.get('device', 'Desktop')
+                try:
+                    intentos = int(intentos_str)
+                except (ValueError, TypeError):
+                    intentos = 999
+                
+                session['pending_score'] = {'attempts': intentos, 'device': device}
+                return redirect(url_for('adivina', guest_score=intentos))
 
     # Por defecto mostramos el global
     top_scores = get_top_scores('all')
     saved = request.args.get('saved')
     record = request.args.get('record') # 'true' or 'false'
-    return render_template('game.html', top_scores=top_scores, saved=saved, record=record)
+    guest_score = request.args.get('guest_score')
+    return render_template('game.html', top_scores=top_scores, saved=saved, record=record, guest_score=guest_score)
 
 @app.route('/api/rankings/<period>')
 def api_rankings(period):

@@ -614,20 +614,6 @@ td:last-child {
 }
 
 .game-card-preview:hover .game-overlay {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.game-overlay p {
-    color: var(--text-muted);
-    margin-bottom: 2rem;
-    line-height: 1.6;
-}
-
-.play-btn {
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    color: white;
-    padding: 0.8rem 2rem;
     border-radius: 50px;
     text-decoration: none;
     font-weight: 700;
@@ -757,6 +743,8 @@ input:checked + .slider .icon-sun { opacity: 1; }
     gap: 1rem;
     margin-top: 1rem;
     justify-content: center;
+    position: relative; /* Ensure z-index works */
+    z-index: 200; /* Higher than stars */
 }
 
 .btn-auth {
@@ -768,6 +756,8 @@ input:checked + .slider .icon-sun { opacity: 1; }
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
+    z-index: 201; /* Ensure clickable */
 }
 
 .btn-login {
