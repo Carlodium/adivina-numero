@@ -4,8 +4,15 @@ import os
 import psycopg2
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from flask_socketio import SocketIO
+import events
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'super_secret_arcade_key_123')
+socketio = SocketIO(app, async_mode='eventlet')
+
+# Register SocketIO events
+events.register_events(socketio)
 
 def get_db_connection():
     database_url = os.environ.get('DATABASE_URL')
@@ -14,6 +21,12 @@ def get_db_connection():
     else:
         conn = sqlite3.connect('scores.db')
     return conn
+
+
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True)
+
 
 def init_db():
     conn = get_db_connection()
@@ -361,5 +374,15 @@ def api_rankings(period):
         
     return {'scores': scores_list}
 
+@app.route('/versus')
+def versus_lobby():
+    """Lobby page for creating or joining rooms."""
+    return render_template('versus_lobby.html')
+
+@app.route('/versus/<room_code>')
+def versus_game(room_code):
+    """Game room page."""
+    return render_template('versus_game.html', room_code=room_code)
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

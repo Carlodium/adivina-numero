@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby Versus - Carlodium Arcade</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='versus.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="stars2"></div>
+
+    <div class="container">
+        <a href="/" class="back-link">⬅️ Volver al Hub</a>
+        
+        <div class="game-card lobby-container">
+            <h1>⚔️ Modo Versus</h1>
+            
+            <!-- Initial Menu -->
+            <div id="menu-section">
+                <button id="btn-create" class="play-btn">Crear Sala</button>
+                <div style="margin: 1rem 0; font-weight: bold;">- O -</div>
+                <div class="input-group">
+                    <input type="text" id="room-code-input" placeholder="Código de Sala" maxlength="4" style="text-transform: uppercase; text-align: center; letter-spacing: 5px;">
+                </div>
+                <button id="btn-join" class="play-btn secondary">Unirse</button>
+            </div>
+
+            <!-- Waiting Room (Hidden initially) -->
+            <div id="lobby-section" class="hidden" style="width: 100%;">
+                <div class="room-info">
+                    <h3>Sala: <span id="display-room-code" style="color: var(--primary); font-size: 2rem; letter-spacing: 3px;">????</span></h3>
+                    <p>Esperando jugadores...</p>
+                </div>
+
+                <!-- Avatars Stage -->
+                <div class="avatar-stage">
+                    <!-- P1 (Host) -->
+                    <div class="avatar-wrapper" id="p1-wrapper">
+                        <div class="avatar-cube" id="p1-avatar">
+                            <div class="avatar-eyes">
+                                <div class="eye"></div><div class="eye"></div>
+                            </div>
+                        </div>
+                        <div class="avatar-name" id="p1-name">Esperando...</div>
+                    </div>
+
+                    <!-- P2 (Guest) -->
+                    <div class="avatar-wrapper" id="p2-wrapper" style="opacity: 0.5;">
+                        <div class="avatar-cube p2" id="p2-avatar">
+                            <div class="avatar-eyes">
+                                <div class="eye"></div><div class="eye"></div>
+                            </div>
+                        </div>
+                        <div class="avatar-name" id="p2-name">Esperando...</div>
+                    </div>
+                </div>
+
+                <!-- Chat -->
+                <div class="lobby-chat">
+                    <div class="chat-messages" id="chat-box"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="Escribe algo..." maxlength="50">
+                        <button id="btn-send" class="play-btn small">Enviar</button>
+                    </div>
+                </div>
+                <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">💡 Pulsa ESPACIO para saltar</p>
+
+                <button id="btn-start" class="play-btn hidden" style="margin-top: 2rem;">¡EMPEZAR PARTIDA!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let myRoomCode = null;
+        let myRole = null; // 'host' or 'guest'
+
+        // DOM Elements
+        const menuSection = document.getElementById('menu-section');
+        const lobbySection = document.getElementById('lobby-section');
+        const displayRoomCode = document.getElementById('display-room-code');
+        const p1Name = document.getElementById('p1-name');
+        const p2Name = document.getElementById('p2-name');
+        const p2Wrapper = document.getElementById('p2-wrapper');
+        const btnStart = document.getElementById('btn-start');
+        const chatBox = document.getElementById('chat-box');
+        const chatInput = document.getElementById('chat-input');
+
+        // --- Menu Actions ---
+        document.getElementById('btn-create').addEventListener('click', () => {
+            const username = "{{ session.get('username', 'Invitado') }}";
+            socket.emit('create_room', { username: username });
+        });
+
+        document.getElementById('btn-join').addEventListener('click', () => {
+            const code = document.getElementById('room-code-input').value;
+            const username = "{{ session.get('username', 'Invitado') }}";
+            if(code) socket.emit('join_room', { room_code: code, username: username });
+        });
+
+        // --- Socket Events ---
+        socket.on('room_created', (data) => {
+            myRoomCode = data.room_code;
+            myRole = 'host';
+            showLobby();
+            p1Name.textContent = "{{ session.get('username', 'Invitado') }}";
+        });
+
+        socket.on('player_joined', (data) => {
+            // Update UI with players
+            const players = data.players;
+            myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase(); // Ensure code is set for joiner
+            
+            showLobby();
+            
+            // Reset states
+            p2Wrapper.style.opacity = '0.5';
+            p2Name.textContent = 'Esperando...';
+
+            players.forEach(p => {
+                if (p.role === 'host') {
+                    p1Name.textContent = p.username;
+                } else {
+                    p2Name.textContent = p.username;
+                    p2Wrapper.style.opacity = '1';
+                    if (myRole === 'host') btnStart.classList.remove('hidden');
+                }
+            });
+        });
+
+        socket.on('error', (data) => {
+            alert(data.message);
+        });
+
+        socket.on('chat_message', (data) => {
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg';
+            msg.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+            chatBox.appendChild(msg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        socket.on('avatar_jump', (data) => {
+            // Determine which avatar jumped based on SID logic (simplified here for demo)
+            // Ideally we map SID to P1/P2. For now, if it's not me, it's the other one.
+            if (data.sid !== socket.id) {
+                const otherAvatar = myRole === 'host' ? document.getElementById('p2-avatar') : document.getElementById('p1-avatar');
+                jumpAvatar(otherAvatar);
+            }
+        });
+
+        socket.on('game_started', (data) => {
+            window.location.href = `/versus/${myRoomCode}`;
+        });
+
+        // --- Interactions ---
+        function showLobby() {
+            menuSection.classList.add('hidden');
+            lobbySection.classList.remove('hidden');
+            displayRoomCode.textContent = myRoomCode;
+        }
+
+        // Chat
+        document.getElementById('btn-send').addEventListener('click', sendChat);
+        chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendChat(); });
+
+        function sendChat() {
+            const text = chatInput.value.trim();
+            if(text) {
+                socket.emit('chat_message', { room_code: myRoomCode, message: text });
+                chatInput.value = '';
+            }
+        }
+
+        // Jump
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && document.activeElement !== chatInput && !menuSection.classList.contains('hidden') === false) {
+                e.preventDefault();
+                const myAvatar = myRole === 'host' ? document.getElementById('p1-avatar') : document.getElementById('p2-avatar');
+                jumpAvatar(myAvatar);
+                socket.emit('avatar_jump', { room_code: myRoomCode });
+            }
+        });
+
+        function jumpAvatar(element) {
+            element.classList.remove('jumping');
+            void element.offsetWidth; // Trigger reflow
+            element.classList.add('jumping');
+        }
+
+        // Start Game
+        btnStart.addEventListener('click', () => {
+            socket.emit('start_game', { room_code: myRoomCode });
+        });
+    </script>
+</body>
+</html>

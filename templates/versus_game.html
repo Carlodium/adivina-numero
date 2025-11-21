@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Versus - Carlodium Arcade</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='versus.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <div class="stars"></div>
+    
+    <!-- Coin Flip Overlay -->
+    <div id="coin-overlay" class="coin-overlay">
+        <h2 style="color: white; margin-bottom: 2rem;">¿Quién empieza?</h2>
+        <div class="coin" id="coin">
+            <div class="coin-face coin-front">P1</div>
+            <div class="coin-face coin-back">P2</div>
+        </div>
+        <h3 id="coin-result" style="color: var(--primary); margin-top: 2rem; opacity: 0; transition: opacity 0.5s;">¡EMPIEZA P1!</h3>
+    </div>
+
+    <div class="container">
+        <div class="game-card">
+            <div class="versus-header">
+                <div id="p1-indicator" class="turn-indicator">Jugador 1</div>
+                <div style="font-size: 1.5rem;">VS</div>
+                <div id="p2-indicator" class="turn-indicator">Jugador 2</div>
+            </div>
+
+            <div class="game-area" style="text-align: center;">
+                <h1 style="margin-bottom: 1rem;">Adivina el Número (1-100)</h1>
+                
+                <div id="game-log" class="chat-messages" style="height: 200px; background: rgba(0,0,0,0.2);">
+                    <!-- Game events go here -->
+                </div>
+
+                <div class="input-group" style="margin-top: 2rem;">
+                    <input type="number" id="guess-input" placeholder="Tu número..." min="1" max="100" disabled>
+                    <button id="btn-guess" class="play-btn" disabled>Adivinar</button>
+                </div>
+                
+                <p id="status-msg" style="margin-top: 1rem; color: var(--text-muted);">Esperando turno...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="coin-overlay hidden" style="background: rgba(0,0,0,0.95);">
+        <h1 id="winner-text" style="font-size: 3rem; color: #fbbf24; margin-bottom: 1rem;">¡VICTORIA!</h1>
+        <p style="color: white; font-size: 1.5rem;">El número era: <span id="secret-number" style="color: var(--primary);">42</span></p>
+        <a href="/versus" class="play-btn" style="margin-top: 2rem;">Volver al Lobby</a>
+    </div>
+
+    <script>
+        const socket = io();
+        const roomCode = "{{ room_code }}";
+        const mySid = socket.id; // Note: This might change on reconnect, handled by server session ideally
+        let myTurn = false;
+
+        // DOM
+        const coinOverlay = document.getElementById('coin-overlay');
+        const coin = document.getElementById('coin');
+        const coinResult = document.getElementById('coin-result');
+        const p1Ind = document.getElementById('p1-indicator');
+        const p2Ind = document.getElementById('p2-indicator');
+        const guessInput = document.getElementById('guess-input');
+        const btnGuess = document.getElementById('btn-guess');
+        const gameLog = document.getElementById('game-log');
+        const statusMsg = document.getElementById('status-msg');
+        const gameOverModal = document.getElementById('game-over-modal');
+
+        // Join the room again (socket connection is new per page load)
+        socket.emit('join_room', { room_code: roomCode, username: "{{ session.get('username', 'Jugador') }}" });
+
+        // Wait for game start signal (which includes turn info)
+        // Actually, since we redirected, we need to ask server for current state or wait for init
+        // For simplicity, let's assume server sends 'game_started' again or we trigger a 'ready_for_game'
+        
+        // BETTER APPROACH: The server already knows the game started. 
+        // We should emit 'rejoin_game' or similar. 
+        // For this MVP, let's trigger the coin flip locally based on a signal.
+        
+        socket.on('connect', () => {
+             // Request game state
+             socket.emit('start_game', { room_code: roomCode }); // Re-triggering start for sync (simplified)
+        });
+
+        socket.on('game_started', (data) => {
+            // Play Coin Animation
+            const isP1Start = data.first_turn === data.players[0]; // Assuming P1 is index 0
+            const rotations = 1800 + (isP1Start ? 0 : 180); // 5 spins + result
+            
+            coin.style.transform = `rotateY(${rotations}deg)`;
+            
+            setTimeout(() => {
+                coinResult.textContent = isP1Start ? "¡EMPIEZA JUGADOR 1!" : "¡EMPIEZA JUGADOR 2!";
+                coinResult.style.opacity = '1';
+                
+                setTimeout(() => {
+                    coinOverlay.classList.add('hidden');
+                    updateTurnUI(data.first_turn);
+                }, 2000);
+            }, 3000);
+        });
+
+        socket.on('turn_result', (data) => {
+            // Add to log
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg';
+            msg.style.width = '100%';
+            msg.style.textAlign = 'center';
+            
+            const isMe = data.player === socket.id;
+            const color = isMe ? 'var(--primary)' : '#ef4444';
+            const text = data.result === 'low' ? 'Muy bajo ⬆️' : 'Muy alto ⬇️';
+            
+            msg.innerHTML = `<span style="color:${color}">${isMe ? 'Tú' : 'Rival'}</span> dijo ${data.guess}: <strong>${text}</strong>`;
+            gameLog.appendChild(msg);
+            gameLog.scrollTop = gameLog.scrollHeight;
+
+            updateTurnUI(data.next_turn);
+        });
+
+        socket.on('game_over', (data) => {
+            const isWin = data.winner === socket.id;
+            document.getElementById('winner-text').textContent = isWin ? "¡VICTORIA! 🏆" : "DERROTA 💀";
+            document.getElementById('secret-number').textContent = data.number;
+            gameOverModal.classList.remove('hidden');
+        });
+
+        function updateTurnUI(currentTurnSid) {
+            myTurn = currentTurnSid === socket.id;
+            
+            if (myTurn) {
+                statusMsg.textContent = "¡TU TURNO! Elige un número.";
+                statusMsg.style.color = "var(--primary)";
+                guessInput.disabled = false;
+                btnGuess.disabled = false;
+                guessInput.focus();
+            } else {
+                statusMsg.textContent = "Esperando al rival...";
+                statusMsg.style.color = "var(--text-muted)";
+                guessInput.disabled = true;
+                btnGuess.disabled = true;
+            }
+        }
+
+        // Actions
+        btnGuess.addEventListener('click', sendGuess);
+        guessInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendGuess(); });
+
+        function sendGuess() {
+            const val = guessInput.value;
+            if (val && myTurn) {
+                socket.emit('make_guess', { room_code: roomCode, guess: val });
+                guessInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
