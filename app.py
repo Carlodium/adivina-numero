@@ -207,21 +207,25 @@ def register():
     c = conn.cursor()
     
     try:
+        # Check for existing user (Case Insensitive)
+        if os.environ.get('DATABASE_URL'):
+            c.execute('SELECT id FROM users WHERE LOWER(username) = LOWER(%s)', (username,))
+        else:
+            c.execute('SELECT id FROM users WHERE LOWER(username) = LOWER(?)', (username,))
+            
+        if c.fetchone():
+            return {'success': False, 'message': 'El usuario ya existe (prueba otro nombre)'}
+
+        # Insert new user (Case Preserving)
         hashed_pw = generate_password_hash(password)
         if os.environ.get('DATABASE_URL'):
-            c.execute('INSERT INTO users (username, password_hash) VALUES (%s, %s)', (username, hashed_pw))
+            c.execute('INSERT INTO users (username, password_hash) VALUES (%s, %s) RETURNING id', (username, hashed_pw))
+            user_id = c.fetchone()[0]
         else:
             c.execute('INSERT INTO users (username, password_hash) VALUES (?, ?)', (username, hashed_pw))
-        conn.commit()
-        
-        # Auto login logic
-        # Get the new user ID
-        if os.environ.get('DATABASE_URL'):
-            c.execute("SELECT id FROM users WHERE username = %s", (username,))
-        else:
-            c.execute("SELECT id FROM users WHERE username = ?", (username,))
+            user_id = c.lastrowid
             
-        user_id = c.fetchone()[0]
+        conn.commit()
         
         session['user_id'] = user_id
         session['username'] = username
@@ -250,22 +254,23 @@ def login():
     conn = get_db_connection()
     c = conn.cursor()
     
+    # Login Case Insensitive
     if os.environ.get('DATABASE_URL'):
-        c.execute('SELECT id, password_hash FROM users WHERE username = %s', (username,))
+        c.execute('SELECT id, password_hash, username FROM users WHERE LOWER(username) = LOWER(%s)', (username,))
     else:
-        c.execute('SELECT id, password_hash FROM users WHERE username = ?', (username,))
+        c.execute('SELECT id, password_hash, username FROM users WHERE LOWER(username) = LOWER(?)', (username,))
         
     user = c.fetchone()
     conn.close()
     
     if user and check_password_hash(user[1], password):
         session['user_id'] = user[0]
-        session['username'] = username
+        session['username'] = user[2] # Use the stored casing, not the input
         
         # Check for pending score
         if 'pending_score' in session:
             score_data = session['pending_score']
-            save_score(username, score_data['attempts'], score_data['device'], user[0])
+            save_score(user[2], score_data['attempts'], score_data['device'], user[0])
             session.pop('pending_score', None)
             
         return {'success': True}
