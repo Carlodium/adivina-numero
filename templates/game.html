@@ -256,8 +256,6 @@
             } else {
                 // ¡GANASTE!
                 juegoTerminado = true;
-                mensajeEl.textContent = `¡Felicidades! Has adivinado el número ${numeroSecreto} en ${intentos} intentos.`;
-                mensajeEl.style.color = "#10b981";
                 
                 // Confeti
                 confetti({
@@ -272,9 +270,32 @@
                 streakCount.textContent = racha;
                 streakContainer.classList.remove('hidden');
 
+                // Comprobar si es récord personal
+                const userBest = {{ user_best if user_best else 'null' }};
+                const isRecord = userBest === null || intentos < userBest;
+                
+                if (isRecord) {
+                    mensajeEl.textContent = `¡Felicidades! Has adivinado el número ${numeroSecreto} en ${intentos} intentos.`;
+                    mensajeEl.style.color = "#10b981";
+                } else {
+                    mensajeEl.textContent = `¡Acertaste en ${intentos} intentos! Pero no superaste tu récord personal (${userBest} intentos). ¡Sigue intentándolo! 💪`;
+                    mensajeEl.style.color = "#fbbf24";
+                }
+
                 gameSection.classList.add('hidden');
                 winnerSection.classList.remove('hidden');
                 intentosFinalesInput.value = intentos;
+                
+                // Mostrar u ocultar botón de guardar según si es récord
+                const saveButton = winnerSection.querySelector('button[type="submit"]');
+                if (saveButton) {
+                    if (isRecord) {
+                        saveButton.style.display = 'block';
+                    } else {
+                        saveButton.style.display = 'none';
+                    }
+                }
+                
                 if (nombreInput) {
                     setTimeout(() => nombreInput.focus(), 100);
                 }

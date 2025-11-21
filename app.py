@@ -305,7 +305,21 @@ def adivina():
     saved = request.args.get('saved')
     record = request.args.get('record') # 'true' or 'false'
     guest_score = request.args.get('guest_score')
-    return render_template('game.html', top_scores=top_scores, saved=saved, record=record, guest_score=guest_score)
+    
+    # Obtener el personal best del usuario si está logueado
+    user_best = None
+    if 'user_id' in session:
+        conn = get_db_connection()
+        c = conn.cursor()
+        if os.environ.get('DATABASE_URL'):
+            c.execute('SELECT MIN(attempts) FROM scores WHERE user_id = %s', (session['user_id'],))
+        else:
+            c.execute('SELECT MIN(attempts) FROM scores WHERE user_id = ?', (session['user_id'],))
+        result = c.fetchone()
+        user_best = result[0] if result and result[0] is not None else None
+        conn.close()
+    
+    return render_template('game.html', top_scores=top_scores, saved=saved, record=record, guest_score=guest_score, user_best=user_best)
 
 @app.route('/api/rankings/<period>')
 def api_rankings(period):
