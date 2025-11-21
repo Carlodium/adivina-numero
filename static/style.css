@@ -42,14 +42,21 @@ body {
   justify-content: center;
   align-items: center;
   margin: 0;
-  transition: background 1s ease, color 1s ease, opacity 0.3s ease;
+  transition: background 1s ease, color 1s ease;
   overflow-x: hidden; /* Evitar scroll horizontal por animaciones */
   position: relative;
-  opacity: 0;
-  animation: bodyFadeIn 0.3s ease 0.1s forwards;
+  visibility: hidden;
+}
+
+body.loaded {
+  visibility: visible;
+  animation: bodyFadeIn 0.3s ease;
 }
 
 @keyframes bodyFadeIn {
+  from {
+    opacity: 0;
+  }
   to {
     opacity: 1;
   }

@@ -35,6 +35,17 @@
     </div>
 
     <div class="container">
+      <!-- Auth Status (Top Right) -->
+      <div class="game-auth-status">
+        {% if session.get('user_id') %}
+          <span class="username-display">👤 {{ session.get('username') }}</span>
+          <a href="#" id="logout-link" class="btn-auth btn-logout">Cerrar Sesión</a>
+        {% else %}
+          <a href="/auth" class="btn-auth btn-login">Iniciar Sesión</a>
+          <a href="/auth?tab=register" class="btn-auth btn-register">Registrarse</a>
+        {% endif %}
+      </div>
+
       <a href="/" class="back-link">⬅️ Volver al Arcade</a>
       <h1>🎲 Adivina el Número</h1>
 
@@ -150,29 +161,6 @@
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
         const deviceType = isMobile ? 'Mobile' : 'Desktop';
         document.getElementById('device-input').value = deviceType;
-
-        // --- 1. TEMA OSCURO/CLARO ---
-        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-        const body = document.body;
-
-        // Cargar tema guardado
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme) {
-            if (currentTheme === 'light') {
-                body.classList.add('light-mode');
-                toggleSwitch.checked = true; // Checkbox activado para modo claro
-            }
-        }
-
-        toggleSwitch.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                body.classList.add('light-mode');
-                localStorage.setItem('theme', 'light');
-            } else {
-                body.classList.remove('light-mode');
-                localStorage.setItem('theme', 'dark');
-            }
-        });
 
         // --- 2. LÓGICA DEL JUEGO ---
         let numeroSecreto = Math.floor(Math.random() * 100) + 1;
@@ -372,6 +360,50 @@
                 }
             });
         });
+
+        // --- LOGOUT CONFIRMATION ---
+        const logoutLink = document.getElementById('logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                const gameInProgress = document.getElementById('game-section').style.display !== 'none';
+                
+                if (gameInProgress) {
+                    const confirmed = confirm('⚠️ Si cierras sesión ahora, perderás la puntuación de esta partida. ¿Estás seguro?');
+                    if (confirmed) {
+                        window.location.href = '/logout';
+                    }
+                } else {
+                    window.location.href = '/logout';
+                }
+            });
+        }
+
+        // --- THEME TOGGLE ---
+        const toggleSwitch = document.getElementById('checkbox');
+        const body = document.body;
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-mode');
+            toggleSwitch.checked = true;
+        }
+
+        toggleSwitch.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                body.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // Prevent FOUC
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
     </script>
+
   </body>
 </html>
