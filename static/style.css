@@ -669,3 +669,130 @@ td:last-child {
 .back-link:hover {
     color: var(--primary);
 }
+
+/* --- THEME SWITCH --- */
+.theme-switch-wrapper {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.theme-switch {
+  display: inline-block;
+  height: 34px;
+  position: relative;
+  width: 60px;
+}
+
+.theme-switch input {
+  display: none;
+}
+
+.slider {
+  background-color: rgba(255, 255, 255, 0.1);
+  bottom: 0;
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: .4s;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.slider:before {
+  display: none; /* Custom knob used instead */
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider-knob {
+  background-color: var(--primary);
+  bottom: 4px;
+  content: "";
+  height: 26px;
+  left: 4px;
+  position: absolute;
+  transition: .4s;
+  width: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 0 10px var(--primary);
+}
+
+.icon-sun, .icon-moon {
+    position: absolute;
+    transition: opacity 0.3s;
+}
+
+.icon-moon { opacity: 0; }
+.icon-sun { opacity: 1; }
+
+input:checked + .slider {
+  background-color: var(--input-bg);
+}
+
+input:checked + .slider .slider-knob {
+  transform: translateX(26px);
+  background-color: #fbbf24; /* Sun color */
+  box-shadow: 0 0 10px #fbbf24;
+}
+
+input:checked + .slider .icon-moon { opacity: 1; }
+input:checked + .slider .icon-sun { opacity: 0; }
+
+/* --- HUB AUTH BUTTONS --- */
+.hub-auth-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+.btn-auth {
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-login {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.btn-login:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+}
+
+.btn-register {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.btn-register:hover {
+    background: rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Light mode adjustments for buttons */
+body.light-mode .btn-register {
+    color: var(--primary);
+    border-color: var(--primary);
+}

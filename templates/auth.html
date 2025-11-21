@@ -72,6 +72,12 @@
             loginForm.classList.add('hidden');
         });
 
+        // Check URL params for tab selection
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'register') {
+            tabRegister.click();
+        }
+
         // Login Logic
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();

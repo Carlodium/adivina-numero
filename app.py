@@ -184,6 +184,17 @@ def register():
         conn.commit()
         
         # Auto login logic
+        # Get the new user ID
+        if os.environ.get('DATABASE_URL'):
+            c.execute("SELECT id FROM users WHERE username = %s", (username,))
+        else:
+            c.execute("SELECT id FROM users WHERE username = ?", (username,))
+            
+        user_id = c.fetchone()[0]
+        
+        session['user_id'] = user_id
+        session['username'] = username
+        
         return {'success': True}
     except (sqlite3.IntegrityError, psycopg2.IntegrityError):
         return {'success': False, 'message': 'El usuario ya existe'}

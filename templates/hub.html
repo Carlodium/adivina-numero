@@ -11,7 +11,21 @@
     <!-- Background Animation (Shared) -->
     <div class="stars"></div>
     <div class="stars2"></div>
+    <div class="stars2"></div>
     <div class="stars3"></div>
+
+    <!-- Theme Toggle Switch -->
+    <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider round">
+                <div class="slider-knob">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </div>
+            </div>
+        </label>
+    </div>
 
     <div class="container hub-container">
         <header class="hub-header">
@@ -20,7 +34,10 @@
                     <span style="color: var(--primary); font-weight: bold; margin-right: 1rem;">👤 {{ session.get('username') }}</span>
                     <a href="/logout" class="play-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(255,255,255,0.1);">Salir</a>
                 {% else %}
-                    <a href="/auth" class="play-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">🔑 Acceso</a>
+                    <div class="hub-auth-buttons" style="margin-top: 0;">
+                        <a href="/auth?tab=login" class="btn-auth btn-login">Iniciar Sesión</a>
+                        <a href="/auth?tab=register" class="btn-auth btn-register">Registrarse</a>
+                    </div>
                 {% endif %}
             </div>
             <h1>👾 Carlodium Arcade</h1>
@@ -63,5 +80,31 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <script>
+        // --- TEMA OSCURO/CLARO ---
+        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+        const body = document.body;
+
+        // Cargar tema guardado
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme) {
+            if (currentTheme === 'light') {
+                body.classList.add('light-mode');
+                toggleSwitch.checked = true;
+            }
+        }
+
+        toggleSwitch.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                body.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
 </body>
 </html>
