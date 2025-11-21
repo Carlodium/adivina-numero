@@ -72,22 +72,10 @@
                     <div style="margin-bottom: 1rem; color: var(--primary); font-size: 1.2rem; font-weight: bold;">
                         👤 Jugando como: {{ session.get('username') }}
                     </div>
-                {% else %}
-                    <input
-                      type="text"
-                      name="nombre"
-                      placeholder="¡Escribe tu nombre, campeón!"
-                      maxlength="16"
-                      pattern="[A-Za-z0-9 _-]+"
-                      title="Máximo 16 caracteres. Letras, números y espacios."
-                      required
-                      autocomplete="off"
-                      id="nombre-input"
-                    />
+                    <button type="submit">
+                      Guardar Puntuación
+                    </button>
                 {% endif %}
-                <button type="submit">
-                  Guardar Puntuación
-                </button>
             </form>
             <button id="restart-btn" class="restart-btn" style="margin-top: 1rem;">
                 Jugar de nuevo

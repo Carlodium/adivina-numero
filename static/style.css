@@ -534,6 +534,14 @@ td:last-child {
     text-shadow: 0 0 30px rgba(165, 243, 252, 0.3);
 }
 
+/* Hub title dark gradient for light mode */
+body.light-mode .hub-header h1 {
+    background: linear-gradient(to right, #1e293b, #475569, #64748b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: none;
+}
+
 .hub-header p {
     color: var(--text-muted);
     font-size: 1.2rem;
@@ -662,12 +670,15 @@ td:last-child {
     color: var(--text-muted);
     text-decoration: none;
     margin-bottom: 1rem;
-    font-weight: 500;
-    transition: color 0.2s ease;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    padding: 0.5rem 0;
 }
 
 .back-link:hover {
     color: var(--primary);
+    transform: translateX(-5px);
 }
 
 /* --- THEME SWITCH --- */
@@ -797,8 +808,24 @@ input:checked + .slider .icon-sun { opacity: 1; }
     transform: translateY(-2px);
 }
 
+.btn-logout {
+    background: rgba(239, 68, 68, 0.1);
+    border: 2px solid #ef4444;
+    color: #ef4444;
+}
+
+.btn-logout:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+}
+
 /* Light mode adjustments for buttons */
 body.light-mode .btn-register {
     color: var(--primary);
     border-color: var(--primary);
+}
+
+body.light-mode .btn-logout {
+    color: #dc2626;
+    border-color: #dc2626;
 }

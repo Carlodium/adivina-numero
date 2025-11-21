@@ -90,29 +90,46 @@ def save_score(name, attempts, device, user_id=None):
     if user_id:
         # Buscar mejor puntuación actual
         if os.environ.get('DATABASE_URL'):
-            c.execute('SELECT MIN(attempts) FROM scores WHERE user_id = %s', (user_id,))
+            c.execute('SELECT MIN(attempts), id FROM scores WHERE user_id = %s GROUP BY id ORDER BY attempts ASC LIMIT 1', (user_id,))
         else:
-            c.execute('SELECT MIN(attempts) FROM scores WHERE user_id = ?', (user_id,))
+            c.execute('SELECT MIN(attempts), id FROM scores WHERE user_id = ? GROUP BY id ORDER BY attempts ASC LIMIT 1', (user_id,))
             
         result = c.fetchone()
-        current_best = result[0] if result and result[0] is not None else 9999
         
-        if attempts >= current_best:
-            # No es récord personal, no guardamos
+        if result and result[0] is not None:
+            current_best = result[0]
+            score_id = result[1]
+            
+            if attempts >= current_best:
+                # No es récord personal, no guardamos
+                conn.close()
+                return False
+            
+            # Es mejor score - ACTUALIZAR el existente
+            if os.environ.get('DATABASE_URL'):
+                c.execute('UPDATE scores SET attempts = %s, device = %s, created_at = CURRENT_TIMESTAMP WHERE id = %s', 
+                         (attempts, device, score_id))
+            else:
+                c.execute('UPDATE scores SET attempts = ?, device = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                         (attempts, device, score_id))
+            conn.commit()
             conn.close()
-            return False # Indica que no fue récord
-
-    # Guardar puntuación
-    if os.environ.get('DATABASE_URL'):
-        c.execute('INSERT INTO scores (name, attempts, device, user_id) VALUES (%s, %s, %s, %s)', 
-                 (name, attempts, device, user_id))
-    else:
-        c.execute('INSERT INTO scores (name, attempts, device, user_id) VALUES (?, ?, ?, ?)', 
-                 (name, attempts, device, user_id))
-                 
-    conn.commit()
+            return True
+        else:
+            # Primera vez jugando - INSERT
+            if os.environ.get('DATABASE_URL'):
+                c.execute('INSERT INTO scores (name, attempts, device, user_id) VALUES (%s, %s, %s, %s)', 
+                         (name, attempts, device, user_id))
+            else:
+                c.execute('INSERT INTO scores (name, attempts, device, user_id) VALUES (?, ?, ?, ?)', 
+                         (name, attempts, device, user_id))
+            conn.commit()
+            conn.close()
+            return True
+    
+    # Usuario invitado - no guardar (ya se maneja en adivina route)
     conn.close()
-    return True
+    return False
 
 def get_top_scores(period='all'):
     conn = get_db_connection()
