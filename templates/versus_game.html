@@ -230,10 +230,12 @@
             }
         }
 
+        let isMyTurn = false;
+
         function updateTurnUI(currentTurnSid) {
-            const myTurn = currentTurnSid === socket.id;
+            isMyTurn = currentTurnSid === socket.id;
             
-            if (myTurn) {
+            if (isMyTurn) {
                 updateStatus("✨ ¡TU TURNO! Elige un número.");
                 statusMsg.style.color = "var(--primary)";
                 guessInput.disabled = false;
@@ -290,7 +292,7 @@
                 return;
             }
 
-            if (val && myTurn) {
+            if (val && isMyTurn) {
                 socket.emit('make_guess', { room_code: roomCode, guess: val });
                 guessInput.value = '';
             }
