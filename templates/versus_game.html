@@ -92,7 +92,8 @@
         const gameOverModal = document.getElementById('game-over-modal');
 
         // Join the room again (socket connection is new per page load)
-        socket.emit('join_room', { room_code: roomCode, username: "{{ session.get('username', 'Jugador') }}" });
+        // Join the room again (socket connection is new per page load)
+        // socket.emit('join_room', { room_code: roomCode, username: username });
 
         // Wait for game start signal (which includes turn info)
         // Actually, since we redirected, we need to ask server for current state or wait for init
@@ -119,16 +120,31 @@
             }
         });
 
+        // Ensure unique username for guests to prevent collision
+        let username = "{{ session.get('username', 'Jugador') }}";
+        if (username === 'Jugador') {
+            username += '_' + Math.floor(Math.random() * 1000);
+        }
+
         socket.on('connect', () => {
              console.log('✅ Connected to game server');
              // First join the room
-             socket.emit('join_room', { room_code: roomCode, username: "{{ session.get('username', 'Jugador') }}" });
+             socket.emit('join_room', { room_code: roomCode, username: username });
         });
 
         // Wait for join confirmation before requesting game state
         socket.on('player_joined', (data) => {
             console.log('👥 Joined room successfully, requesting game state');
             socket.emit('start_game', { room_code: roomCode });
+            
+            // Retry mechanism if game doesn't start in 2 seconds
+            setTimeout(() => {
+                const coinOverlay = document.getElementById('coin-overlay');
+                if (!coinOverlay.classList.contains('hidden') && !document.getElementById('coin-result').style.opacity) {
+                    console.log('⚠️ Game start timed out, retrying...');
+                    socket.emit('start_game', { room_code: roomCode });
+                }
+            }, 2000);
         });
 
         socket.on('game_started', (data) => {
