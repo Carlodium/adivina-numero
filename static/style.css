@@ -688,12 +688,18 @@ body.light-mode .hub-header h1 {
     font-weight: 600;
     font-size: 1rem;
     transition: all 0.3s ease;
-    padding: 0.5rem 0;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .back-link:hover {
     color: var(--primary);
     transform: translateX(-5px);
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
 }
 
 /* --- THEME SWITCH --- */
@@ -752,6 +758,7 @@ body.light-mode .hub-header h1 {
   justify-content: center;
   font-size: 18px; /* Increased icon size */
   box-shadow: 0 0 10px rgba(30, 41, 59, 0.5);
+  overflow: hidden; /* Fix blue square on rapid clicks */
 }
 
 .icon-sun, .icon-moon {
