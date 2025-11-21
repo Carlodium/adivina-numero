@@ -47,7 +47,7 @@ body {
   position: relative;
 }
 
-/* Fondo Marea (Gradiente Animado) */
+/* Fondo Marea (Gradiente Animado) - MÁS OSCURO */
 body::before {
   content: "";
   position: absolute;
@@ -55,80 +55,42 @@ body::before {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at center, transparent 0%, var(--bg-color) 70%),
-              linear-gradient(45deg, var(--gradient-start), var(--gradient-end), var(--primary), var(--accent));
-  background-size: 400% 400%;
-  animation: tideFlow 20s ease-in-out infinite alternate;
+  background: radial-gradient(circle at center, transparent 0%, var(--bg-color) 60%),
+              linear-gradient(45deg, #0f172a, #1e1b4b, #312e81); /* Tonos mucho más oscuros */
+  background-size: 200% 200%;
+  animation: tideFlow 25s ease-in-out infinite alternate;
   z-index: -2;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
-@keyframes tideFlow {
-  0% { transform: translate(0, 0) rotate(0deg); background-position: 0% 50%; }
-  50% { transform: translate(-2%, 2%) rotate(1deg); background-position: 100% 50%; }
-  100% { transform: translate(0, 0) rotate(0deg); background-position: 0% 50%; }
-}
-
-/* Estrellas (Solo Modo Oscuro) */
+/* Estrellas REALISTAS (Solo Modo Oscuro) */
+/* Usamos box-shadow para crear estrellas aleatorias sin repetición obvia */
 body:not(.light-mode)::after {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  animation: twinkle 4s infinite;
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  box-shadow: 
+    10vw 10vh #fff, 20vw 80vh #fff, 30vw 30vh #fff, 40vw 50vh #fff, 
+    50vw 10vh #fff, 60vw 90vh #fff, 70vw 40vh #fff, 80vw 20vh #fff,
+    90vw 70vh #fff, 15vw 60vh #fff, 25vw 20vh #fff, 35vw 90vh #fff,
+    45vw 40vh #fff, 55vw 80vh #fff, 65vw 10vh #fff, 75vw 50vh #fff,
+    85vw 30vh #fff, 95vw 80vh #fff, 5vw 50vh #fff, 12vw 12vh #fff,
+    /* Capa 2 (más pequeñas/tenues) */
+    8vw 85vh 1px rgba(255,255,255,0.5), 18vw 15vh 1px rgba(255,255,255,0.5),
+    28vw 65vh 1px rgba(255,255,255,0.5), 38vw 25vh 1px rgba(255,255,255,0.5),
+    48vw 75vh 1px rgba(255,255,255,0.5), 58vw 35vh 1px rgba(255,255,255,0.5),
+    68vw 85vh 1px rgba(255,255,255,0.5), 78vw 15vh 1px rgba(255,255,255,0.5),
+    88vw 65vh 1px rgba(255,255,255,0.5), 98vw 25vh 1px rgba(255,255,255,0.5);
+  animation: twinkle 5s infinite alternate;
   z-index: -1;
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
-/* Nubes/Partículas (Solo Modo Claro) */
-body.light-mode::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8) 0%, transparent 50%),
-    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.6) 0%, transparent 40%);
-  background-size: 100% 100%;
-  animation: floatClouds 30s linear infinite;
-  z-index: -1;
-  opacity: 0.5;
-  filter: blur(20px);
-}
-
-@keyframes twinkle {
-  0% { opacity: 0.4; transform: translateY(0); }
-  50% { opacity: 0.8; transform: translateY(-2px); }
-  100% { opacity: 0.4; transform: translateY(0); }
-}
-
-@keyframes floatClouds {
-  0% { transform: translateX(-10%) translateY(0); }
-  50% { transform: translateX(10%) translateY(-5%); }
-  100% { transform: translateX(-10%) translateY(0); }
-}
-
-.container {
-  width: 100%;
-  max-width: 1000px;
-  padding: 2rem;
-  text-align: center;
-}
-
-/* Theme Toggle Switch */
+/* Theme Toggle Switch MEJORADO */
 .theme-switch-wrapper {
   position: absolute;
   top: 20px;
@@ -142,7 +104,7 @@ body.light-mode::after {
   display: inline-block;
   height: 34px;
   position: relative;
-  width: 60px;
+  width: 64px; /* Un poco más ancho */
 }
 
 .theme-switch input {
@@ -150,78 +112,80 @@ body.light-mode::after {
 }
 
 .slider {
-  background-color: #1e293b; /* Dark bg */
+  background-color: #0f172a; /* Fondo oscuro profundo */
   bottom: 0;
   cursor: pointer;
   left: 0;
   position: absolute;
   right: 0;
   top: 0;
-  transition: .4s;
+  transition: .4s cubic-bezier(0.4, 0.0, 0.2, 1);
   border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 5px;
+  border-radius: 34px;
+  overflow: hidden; /* Importante para que nada salga */
 }
 
 .slider:before {
   background-color: #fff;
-  bottom: 4px;
+  bottom: 3px;
   content: "";
-  height: 24px;
+  height: 26px;
   left: 4px;
   position: absolute;
-  transition: .4s;
-  width: 24px;
+  transition: .4s cubic-bezier(0.4, 0.0, 0.2, 1);
+  width: 26px;
   z-index: 2;
-}
-
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
   border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Iconos dentro del slider */
+/* Iconos posicionados ABSOLUTAMENTE */
 .icon-sun, .icon-moon {
-    font-size: 14px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
     z-index: 1;
-    line-height: 1;
-    user-select: none;
+    transition: all 0.4s ease;
+    line-height: 0; /* Evitar alturas extrañas */
 }
 
 .icon-sun {
-    margin-left: 28px; /* Posición cuando está oscuro (oculto por la bola) */
+    right: 8px; /* Sol a la derecha (visible en modo claro) */
     opacity: 0;
-    transition: opacity 0.3s;
+    transform: translateY(-50%) scale(0.5);
 }
 
 .icon-moon {
-    margin-left: 4px;
+    left: 8px; /* Luna a la izquierda (visible en modo oscuro) */
     opacity: 1;
-    transition: opacity 0.3s;
+    transform: translateY(-50%) scale(1);
+    color: #fbbf24; /* Luna dorada */
 }
 
 /* Estado Activado (Modo Claro) */
 input:checked + .slider {
-  background-color: #60a5fa; /* Azul cielo */
+  background-color: #60a5fa;
   border-color: #60a5fa;
 }
 
 input:checked + .slider:before {
-  transform: translateX(26px);
+  transform: translateX(30px); /* Desplazamiento calculado */
 }
 
 input:checked + .slider .icon-sun {
     opacity: 1;
-    margin-left: 4px; /* Ajuste visual */
+    transform: translateY(-50%) scale(1);
+    left: 8px; /* Se mueve al sitio */
+    right: auto;
+    color: #fff;
 }
 
 input:checked + .slider .icon-moon {
     opacity: 0;
+    transform: translateY(-50%) scale(0.5);
+    left: auto;
+    right: 8px; /* Se va */
 }
 
 /* Streak Counter */
