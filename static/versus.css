@@ -103,19 +103,23 @@
 
 /* --- AVATAR CUBE --- */
 .avatar-cube {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, var(--primary), #f59e0b);
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+    width: 120px; /* Increased from 80px */
+    height: 120px;
+    background: linear-gradient(135deg, #fbbf24, #d97706); /* Warmer yellow/orange */
+    border-radius: 35px; /* Much rounder (Squircle) */
+    box-shadow: 
+        0 15px 35px rgba(251, 191, 36, 0.3),
+        inset 0 -10px 20px rgba(0,0,0,0.1); /* Inner depth */
     position: relative;
     transition: transform 0.1s;
     cursor: pointer;
 }
 
 .avatar-cube.p2 {
-    background: linear-gradient(135deg, #ef4444, #b91c1c);
-    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, #f87171, #dc2626); /* Softer red */
+    box-shadow: 
+        0 15px 35px rgba(239, 68, 68, 0.3),
+        inset 0 -10px 20px rgba(0,0,0,0.1);
 }
 
 .face {
@@ -123,36 +127,52 @@
     height: 100%;
     position: relative;
     display: flex;
+    flex-direction: column; /* Stack eyes and mouth/blush */
     justify-content: center;
     align-items: center;
 }
 
+/* Blush Cheeks */
+.face::before, .face::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 8px;
+    background: rgba(255, 100, 100, 0.4);
+    border-radius: 50%;
+    top: 65px; /* Below eyes */
+    z-index: 1;
+}
+.face::before { left: 25px; }
+.face::after { right: 25px; }
+
 .eyes {
     display: flex;
-    gap: 15px;
-    margin-bottom: 10px;
+    gap: 24px; /* Further apart for cute wide look? Or closer? Let's try balanced */
+    margin-bottom: 5px;
+    z-index: 2;
 }
 
 .eye {
-    width: 12px;
-    height: 12px;
-    background: black;
+    width: 22px; /* Much bigger eyes */
+    height: 22px;
+    background: #1e293b; /* Dark blue-black instead of pure black */
     border-radius: 50%;
     position: relative;
     transition: height 0.1s, border-radius 0.1s;
 }
 
-/* Eye Tracking Pupil Effect (Pseudo-element) */
+/* Eye Tracking Pupil Effect (Pseudo-element) - Sparkle */
 .eye::after {
     content: '';
     position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 4px;
-    height: 4px;
+    top: 4px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
     background: white;
     border-radius: 50%;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 /* --- ANIMATIONS --- */

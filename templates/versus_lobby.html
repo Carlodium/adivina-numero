@@ -159,8 +159,8 @@
         // --- AVATAR LOGIC ---
         const stage = document.getElementById('avatar-stage');
         
-        // Eye Tracking
-        stage.addEventListener('mousemove', (e) => {
+        // Eye Tracking (Global)
+        document.addEventListener('mousemove', (e) => {
             const eyes = document.querySelectorAll('.eye');
             eyes.forEach(eye => {
                 if (eye.closest('.dizzy') || eye.closest('.happy')) return; // Don't track if dizzy/happy
