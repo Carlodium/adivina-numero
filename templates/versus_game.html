@@ -10,6 +10,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
 <body>
+    <!-- Theme Toggle -->
+    <div class="theme-switch-wrapper" id="theme-toggle-wrapper">
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider round">
+                <div class="slider-knob">
+                    <span class="icon-moon">🌙</span>
+                    <span class="icon-sun">☀️</span>
+                </div>
+            </div>
+        </label>
+    </div>
+
     <div class="stars"></div>
     
     <!-- Coin Flip Overlay -->
@@ -25,9 +38,15 @@
     <div class="container">
         <div class="game-card">
             <div class="versus-header">
-                <div id="p1-indicator" class="turn-indicator">Jugador 1</div>
+                <div id="p1-indicator" class="turn-indicator">
+                    <span id="p1-name">Jugador 1</span>
+                    <span style="color: var(--primary); font-size: 0.8rem; margin-left: 0.5rem;">(P1)</span>
+                </div>
                 <div style="font-size: 1.5rem;">VS</div>
-                <div id="p2-indicator" class="turn-indicator">Jugador 2</div>
+                <div id="p2-indicator" class="turn-indicator">
+                    <span id="p2-name">Jugador 2</span>
+                    <span style="color: #ef4444; font-size: 0.8rem; margin-left: 0.5rem;">(P2)</span>
+                </div>
             </div>
 
             <div class="game-area" style="text-align: center;">
@@ -83,24 +102,58 @@
         // We should emit 'rejoin_game' or similar. 
         // For this MVP, let's trigger the coin flip locally based on a signal.
         
+        // Theme persistence
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('checkbox').checked = true;
+        }
+
+        document.getElementById('checkbox').addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.classList.remove('light-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
         socket.on('connect', () => {
              // Request game state
              socket.emit('start_game', { room_code: roomCode }); // Re-triggering start for sync (simplified)
         });
 
         socket.on('game_started', (data) => {
+            console.log('Game started data:', data);
+            
+            // Update player names
+            const players = data.players;
+            const p1Sid = players[0];
+            const p2Sid = players[1];
+            
+            // Get player names from room data (we'll need to pass this)
+            document.getElementById('p1-name').textContent = data.player_names ? data.player_names[p1Sid] : 'Jugador 1';
+            document.getElementById('p2-name').textContent = data.player_names ? data.player_names[p2Sid] : 'Jugador 2';
+            
             // Play Coin Animation
-            const isP1Start = data.first_turn === data.players[0]; // Assuming P1 is index 0
+            const isP1Start = data.first_turn === p1Sid;
             const rotations = 1800 + (isP1Start ? 0 : 180); // 5 spins + result
             
+            console.log('Coin rotation:', rotations, 'isP1Start:', isP1Start);
             coin.style.transform = `rotateY(${rotations}deg)`;
             
             setTimeout(() => {
-                coinResult.textContent = isP1Start ? "¡EMPIEZA JUGADOR 1!" : "¡EMPIEZA JUGADOR 2!";
+                const starterName = isP1Start ? document.getElementById('p1-name').textContent : document.getElementById('p2-name').textContent;
+                coinResult.textContent = `¡EMPIEZA ${starterName.toUpperCase()}!`;
                 coinResult.style.opacity = '1';
+                console.log('Showing result:', coinResult.textContent);
                 
                 setTimeout(() => {
+                    console.log('Hiding coin overlay');
                     coinOverlay.classList.add('hidden');
+                    // Hide theme toggle during game
+                    document.getElementById('theme-toggle-wrapper').style.display = 'none';
                     updateTurnUI(data.first_turn);
                 }, 2000);
             }, 3000);

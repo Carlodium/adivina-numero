@@ -97,9 +97,12 @@ def register_events(socketio):
         if room_code in rooms:
             # If game is already playing, resend the game state
             if rooms[room_code].get('status') == 'playing':
+                # Build player names dict
+                player_names = {sid: p['username'] for sid, p in rooms[room_code]['players'].items()}
                 emit('game_started', {
                     'first_turn': rooms[room_code]['turn'],
-                    'players': list(rooms[room_code]['players'].keys())
+                    'players': list(rooms[room_code]['players'].keys()),
+                    'player_names': player_names
                 }, to=request.sid)
                 return
             
@@ -112,9 +115,13 @@ def register_events(socketio):
             first_player = random.choice(players)
             rooms[room_code]['turn'] = first_player
             
+            # Build player names dict
+            player_names = {sid: p['username'] for sid, p in rooms[room_code]['players'].items()}
+            
             emit('game_started', {
                 'first_turn': first_player,
-                'players': list(rooms[room_code]['players'].keys())
+                'players': players,
+                'player_names': player_names
             }, to=room_code)
 
     @socketio.on('make_guess')
