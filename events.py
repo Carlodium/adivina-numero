@@ -95,6 +95,14 @@ def register_events(socketio):
     def handle_start_game(data):
         room_code = data.get('room_code')
         if room_code in rooms:
+            # If game is already playing, resend the game state
+            if rooms[room_code].get('status') == 'playing':
+                emit('game_started', {
+                    'first_turn': rooms[room_code]['turn'],
+                    'players': list(rooms[room_code]['players'].keys())
+                }, to=request.sid)
+                return
+            
             # Generate secret number
             rooms[room_code]['number'] = random.randint(1, 100)
             rooms[room_code]['status'] = 'playing'
