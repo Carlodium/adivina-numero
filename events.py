@@ -56,7 +56,34 @@ def register_events(socketio):
         username = data.get('username', 'Guest')
         
         if room_code in rooms:
-            if len(rooms[room_code]['players']) < 2:
+            # Check if player is reconnecting (same username)
+            existing_sid = None
+            for sid, player in rooms[room_code]['players'].items():
+                if player['username'] == username:
+                    existing_sid = sid
+                    break
+            
+            if existing_sid:
+                # Reconnection logic: Update SID mapping
+                player_data = rooms[room_code]['players'].pop(existing_sid)
+                rooms[room_code]['players'][request.sid] = player_data
+                
+                # If it was their turn, update turn SID
+                if rooms[room_code].get('turn') == existing_sid:
+                    rooms[room_code]['turn'] = request.sid
+                    
+                join_room(room_code)
+                print(f"{username} reconnected to room {room_code} (SID updated)")
+                
+                # Notify everyone
+                players_list = [
+                    {'sid': sid, 'username': p['username'], 'role': p['role']} 
+                    for sid, p in rooms[room_code]['players'].items()
+                ]
+                emit('player_joined', {'players': players_list}, to=room_code)
+                
+            elif len(rooms[room_code]['players']) < 2:
+                # New player logic
                 rooms[room_code]['players'][request.sid] = {
                     'username': username, 
                     'ready': False, 
