@@ -46,6 +46,7 @@ body.light-mode .hub-header h1 {
     position: relative;
     overflow: hidden;
     cursor: pointer;
+    will-change: transform, box-shadow, border-color;
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
                 border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
                 box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -58,7 +59,7 @@ body.light-mode .hub-header h1 {
     transform: translateY(-10px) scale(1.02);
     border-color: var(--primary);
     box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.6);
-    animation: none;
+    animation-play-state: paused;
 }
 
 .game-card-preview .card-content {

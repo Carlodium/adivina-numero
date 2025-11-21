@@ -731,7 +731,7 @@ body.light-mode .hub-header h1 {
 }
 
 .slider-knob {
-  background-color: var(--primary);
+  background-color: #1e293b;
   bottom: 5px;
   content: "";
   height: 30px; /* Increased size */
@@ -744,7 +744,7 @@ body.light-mode .hub-header h1 {
   align-items: center;
   justify-content: center;
   font-size: 18px; /* Increased icon size */
-  box-shadow: 0 0 10px var(--primary);
+  box-shadow: 0 0 10px rgba(30, 41, 59, 0.5);
 }
 
 .icon-sun, .icon-moon {
