@@ -63,46 +63,56 @@ body::before {
   opacity: 0.9;
 }
 
-/* Estrellas REALISTAS (Solo Modo Oscuro) - MÁS DENSIDAD */
+/* Estrellas REALISTAS (Solo Modo Oscuro) - DENSIDAD EXTREMA */
 body:not(.light-mode)::after {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
+  width: 2px; /* Base un poco más grande */
+  height: 2px;
   background: transparent;
   box-shadow: 
-    /* Capa 1: Estrellas brillantes */
-    10vw 10vh #fff, 20vw 80vh #fff, 30vw 30vh #fff, 40vw 50vh #fff, 
-    50vw 10vh #fff, 60vw 90vh #fff, 70vw 40vh #fff, 80vw 20vh #fff,
-    90vw 70vh #fff, 15vw 60vh #fff, 25vw 20vh #fff, 35vw 90vh #fff,
-    45vw 40vh #fff, 55vw 80vh #fff, 65vw 10vh #fff, 75vw 50vh #fff,
-    85vw 30vh #fff, 95vw 80vh #fff, 5vw 50vh #fff, 12vw 12vh #fff,
-    /* Capa 2: Estrellas medias (AÑADIDAS MÁS) */
-    8vw 85vh 1px rgba(255,255,255,0.6), 18vw 15vh 1px rgba(255,255,255,0.6),
-    28vw 65vh 1px rgba(255,255,255,0.6), 38vw 25vh 1px rgba(255,255,255,0.6),
-    48vw 75vh 1px rgba(255,255,255,0.6), 58vw 35vh 1px rgba(255,255,255,0.6),
-    68vw 85vh 1px rgba(255,255,255,0.6), 78vw 15vh 1px rgba(255,255,255,0.6),
-    88vw 65vh 1px rgba(255,255,255,0.6), 98vw 25vh 1px rgba(255,255,255,0.6),
-    15vw 5vh 1px rgba(255,255,255,0.6), 35vw 95vh 1px rgba(255,255,255,0.6),
-    55vw 15vh 1px rgba(255,255,255,0.6), 75vw 85vh 1px rgba(255,255,255,0.6),
-    /* Capa 3: Polvo estelar (muy tenues) */
-    3vw 3vh 1px rgba(255,255,255,0.3), 13vw 13vh 1px rgba(255,255,255,0.3),
-    23vw 23vh 1px rgba(255,255,255,0.3), 33vw 33vh 1px rgba(255,255,255,0.3),
-    43vw 43vh 1px rgba(255,255,255,0.3), 53vw 53vh 1px rgba(255,255,255,0.3),
-    63vw 63vh 1px rgba(255,255,255,0.3), 73vw 73vh 1px rgba(255,255,255,0.3),
-    83vw 83vh 1px rgba(255,255,255,0.3), 93vw 93vh 1px rgba(255,255,255,0.3);
-  animation: twinkle 5s infinite alternate;
+    /* Capa 1: Estrellas Grandes y Brillantes (2px) */
+    5vw 15vh #fff, 15vw 35vh #fff, 25vw 5vh #fff, 35vw 55vh #fff, 
+    45vw 25vh #fff, 55vw 85vh #fff, 65vw 45vh #fff, 75vw 15vh #fff,
+    85vw 65vh #fff, 95vw 35vh #fff, 10vw 85vh #fff, 30vw 95vh #fff,
+    50vw 5vh #fff, 70vw 75vh #fff, 90vw 15vh #fff,
+    /* Capa 2: Estrellas Medias (1.5px - simuladas con opacidad) */
+    2vw 10vh 1px #fff, 12vw 40vh 1px #fff, 22vw 20vh 1px #fff, 32vw 70vh 1px #fff,
+    42vw 30vh 1px #fff, 52vw 90vh 1px #fff, 62vw 50vh 1px #fff, 72vw 10vh 1px #fff,
+    82vw 60vh 1px #fff, 92vw 20vh 1px #fff, 8vw 50vh 1px #fff, 18vw 90vh 1px #fff,
+    28vw 10vh 1px #fff, 38vw 60vh 1px #fff, 48vw 20vh 1px #fff, 58vw 80vh 1px #fff,
+    68vw 30vh 1px #fff, 78vw 90vh 1px #fff, 88vw 40vh 1px #fff, 98vw 10vh 1px #fff,
+    /* Capa 3: Cúmulos densos (1px) */
+    1vw 5vh 0px rgba(255,255,255,0.7), 3vw 8vh 0px rgba(255,255,255,0.7), 5vw 2vh 0px rgba(255,255,255,0.7),
+    11vw 15vh 0px rgba(255,255,255,0.7), 13vw 18vh 0px rgba(255,255,255,0.7), 15vw 12vh 0px rgba(255,255,255,0.7),
+    21vw 25vh 0px rgba(255,255,255,0.7), 23vw 28vh 0px rgba(255,255,255,0.7), 25vw 22vh 0px rgba(255,255,255,0.7),
+    31vw 35vh 0px rgba(255,255,255,0.7), 33vw 38vh 0px rgba(255,255,255,0.7), 35vw 32vh 0px rgba(255,255,255,0.7),
+    41vw 45vh 0px rgba(255,255,255,0.7), 43vw 48vh 0px rgba(255,255,255,0.7), 45vw 42vh 0px rgba(255,255,255,0.7),
+    51vw 55vh 0px rgba(255,255,255,0.7), 53vw 58vh 0px rgba(255,255,255,0.7), 55vw 52vh 0px rgba(255,255,255,0.7),
+    61vw 65vh 0px rgba(255,255,255,0.7), 63vw 68vh 0px rgba(255,255,255,0.7), 65vw 62vh 0px rgba(255,255,255,0.7),
+    71vw 75vh 0px rgba(255,255,255,0.7), 73vw 78vh 0px rgba(255,255,255,0.7), 75vw 72vh 0px rgba(255,255,255,0.7),
+    81vw 85vh 0px rgba(255,255,255,0.7), 83vw 88vh 0px rgba(255,255,255,0.7), 85vw 82vh 0px rgba(255,255,255,0.7),
+    91vw 95vh 0px rgba(255,255,255,0.7), 93vw 98vh 0px rgba(255,255,255,0.7), 95vw 92vh 0px rgba(255,255,255,0.7),
+    /* Relleno aleatorio extra */
+    4vw 44vh 0px rgba(255,255,255,0.6), 14vw 14vh 0px rgba(255,255,255,0.6), 24vw 64vh 0px rgba(255,255,255,0.6),
+    34vw 24vh 0px rgba(255,255,255,0.6), 44vw 74vh 0px rgba(255,255,255,0.6), 54vw 34vh 0px rgba(255,255,255,0.6),
+    64vw 84vh 0px rgba(255,255,255,0.6), 74vw 14vh 0px rgba(255,255,255,0.6), 84vw 54vh 0px rgba(255,255,255,0.6),
+    94vw 4vh 0px rgba(255,255,255,0.6), 9vw 29vh 0px rgba(255,255,255,0.6), 19vw 79vh 0px rgba(255,255,255,0.6),
+    29vw 39vh 0px rgba(255,255,255,0.6), 39vw 89vh 0px rgba(255,255,255,0.6), 49vw 19vh 0px rgba(255,255,255,0.6),
+    59vw 69vh 0px rgba(255,255,255,0.6), 69vw 9vh 0px rgba(255,255,255,0.6), 79vw 59vh 0px rgba(255,255,255,0.6),
+    89vw 29vh 0px rgba(255,255,255,0.6), 99vw 69vh 0px rgba(255,255,255,0.6);
+  animation: twinkle 4s infinite alternate;
   z-index: -1;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
-/* Theme Toggle Switch - PREMIUM & LARGER */
+/* Theme Toggle Switch - EXTRA LARGE & BOLD */
 .theme-switch-wrapper {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 25px; /* Un poco más abajo para compensar tamaño */
+  right: 25px;
   display: flex;
   align-items: center;
   z-index: 100;
@@ -110,9 +120,9 @@ body:not(.light-mode)::after {
 
 .theme-switch {
   display: inline-block;
-  height: 40px; /* Más alto */
+  height: 48px; /* Aumentado de 40px */
   position: relative;
-  width: 75px;  /* Más ancho */
+  width: 90px;  /* Aumentado de 75px */
 }
 
 .theme-switch input {
@@ -120,7 +130,7 @@ body:not(.light-mode)::after {
 }
 
 .slider {
-  background-color: #0f172a; /* Fondo oscuro */
+  background-color: #0f172a;
   bottom: 0;
   cursor: pointer;
   left: 0;
@@ -128,23 +138,23 @@ body:not(.light-mode)::after {
   right: 0;
   top: 0;
   transition: .4s cubic-bezier(0.4, 0.0, 0.2, 1);
-  border: 2px solid var(--border-color); /* Borde más visible */
-  border-radius: 40px;
+  border: 2px solid var(--border-color);
+  border-radius: 48px;
   overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
 }
 
-/* La BOLA (Knob) que se mueve */
+/* La BOLA (Knob) */
 .slider-knob {
   position: absolute;
-  top: 3px;
-  left: 4px;
-  width: 30px;
-  height: 30px;
+  top: 4px; /* Centrado verticalmente (48-36)/2 - borde = aprox 4 */
+  left: 5px;
+  width: 36px; /* Aumentado de 30px */
+  height: 36px;
   background-color: #fff;
   border-radius: 50%;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Efecto rebote */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,7 +164,7 @@ body:not(.light-mode)::after {
 /* Iconos DENTRO de la bola */
 .icon-sun, .icon-moon {
     position: absolute;
-    font-size: 18px;
+    font-size: 22px; /* Aumentado de 18px */
     transition: all 0.4s ease;
     line-height: 1;
 }
@@ -168,29 +178,27 @@ body:not(.light-mode)::after {
 .icon-moon {
     opacity: 1;
     transform: scale(1) rotate(0deg);
-    color: #fbbf24; /* Dorado */
+    color: #fbbf24;
 }
 
 /* --- ESTADO ACTIVADO (MODO CLARO) --- */
 
-/* 1. Cambiar fondo del track */
 input:checked + .slider {
-  background-color: #60a5fa; /* Azul cielo */
+  background-color: #60a5fa;
   border-color: #93c5fd;
 }
 
-/* 2. Mover la bola a la derecha */
+/* Mover la bola a la derecha */
 input:checked + .slider .slider-knob {
-  transform: translateX(35px); /* 75px width - 30px knob - margins */
+  transform: translateX(42px); /* 90px width - 36px knob - margins aprox */
   background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-/* 3. Transformar iconos (Luna -> Sol) */
 input:checked + .slider .icon-sun {
     opacity: 1;
     transform: scale(1) rotate(0deg);
-    color: #f59e0b; /* Naranja Sol */
+    color: #f59e0b;
 }
 
 input:checked + .slider .icon-moon {
@@ -462,6 +470,7 @@ td:last-child {
 @media (max-width: 768px) {
     .container {
         padding: 1rem;
+        padding-top: 4rem; /* Espacio extra arriba para el botón */
     }
     
     .main-layout {
@@ -469,12 +478,11 @@ td:last-child {
         gap: 1.5rem;
     }
     
-    .theme-toggle {
+    /* Ajustar posición del switch en móvil */
+    .theme-switch-wrapper {
         top: 15px;
-        right: 15px;
-        width: 40px;
-        height: 40px;
-        font-size: 1.2rem;
+        right: 50%;
+        transform: translateX(50%); /* Centrar botón arriba */
     }
     
     .game-card, .ranking-card {
@@ -483,5 +491,6 @@ td:last-child {
     
     h1 {
         font-size: 2rem;
+        margin-top: 1rem;
     }
 }
