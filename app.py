@@ -98,8 +98,12 @@ def get_top_scores(period='all'):
 # Initialize DB on startup
 init_db()
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
+    return render_template('hub.html')
+
+@app.route('/adivina', methods=['GET', 'POST'])
+def adivina():
     if request.method == 'POST':
         if 'guardar_score' in request.form:
             nombre = request.form.get('nombre', '').strip()
@@ -113,14 +117,14 @@ def index():
 
             if nombre and len(nombre) <= 16 and nombre.replace('_', '').replace('-', '').replace(' ', '').isalnum():
                 save_score(nombre, intentos, device)
-                return redirect(url_for('index', saved='1'))
+                return redirect(url_for('adivina', saved='1'))
             
-            return redirect(url_for('index'))
+            return redirect(url_for('adivina'))
 
     # Por defecto mostramos el global
     top_scores = get_top_scores('all')
     saved = request.args.get('saved')
-    return render_template('index.html', top_scores=top_scores, saved=saved)
+    return render_template('game.html', top_scores=top_scores, saved=saved)
 
 @app.route('/api/rankings/<period>')
 def api_rankings(period):

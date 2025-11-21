@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carlodium Arcade</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Animation (Shared) -->
+    <div class="stars"></div>
+    <div class="stars2"></div>
+    <div class="stars3"></div>
+
+    <div class="container hub-container">
+        <header class="hub-header">
+            <h1>👾 Carlodium Arcade</h1>
+            <p>Selecciona tu aventura y demuestra tu habilidad</p>
+        </header>
+
+        <div class="games-grid">
+            <!-- Game Card 1: Adivina el Número -->
+            <div class="game-card-preview" onclick="location.href='/adivina'">
+                <div class="card-content">
+                    <div class="game-icon">🎲</div>
+                    <h2>Adivina el Número</h2>
+                    <div class="game-overlay">
+                        <p>¿Podrás adivinar el número secreto entre 1 y 100? ¡Compite por el ranking global!</p>
+                        <a href="/adivina" class="play-btn">JUGAR AHORA</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Card 2: Coming Soon -->
+            <div class="game-card-preview coming-soon">
+                <div class="card-content">
+                    <div class="game-icon">🔒</div>
+                    <h2>Próximamente</h2>
+                    <div class="game-overlay">
+                        <p>Estamos cocinando algo épico. ¡Mantente atento!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Game Card 3: Coming Soon -->
+            <div class="game-card-preview coming-soon">
+                <div class="card-content">
+                    <div class="game-icon">🚧</div>
+                    <h2>En Construcción</h2>
+                    <div class="game-overlay">
+                        <p>Más juegos increíbles llegarán pronto a Carlodium Arcade.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
