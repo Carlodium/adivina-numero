@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='versus.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
 <body>
     <!-- Theme Toggle -->
@@ -26,63 +26,84 @@
     <div class="stars"></div>
     <div class="stars2"></div>
 
-    <div class="container">
+    <div class="container lobby-wrapper">
         <a href="/" class="back-link">⬅️ Volver al Hub</a>
 
-        <div class="game-card lobby-container">
+        <!-- MENU INICIAL -->
+        <div id="menu-section" class="game-card menu-card">
             <h1>⚔️ Modo Versus</h1>
+            <button id="btn-create" class="play-btn">Crear Sala</button>
+            <div style="margin: 1rem 0; font-weight: bold;">- O -</div>
+            <div class="input-group">
+                <input type="text" id="room-code-input" placeholder="Código" maxlength="4" style="text-transform: uppercase; text-align: center; letter-spacing: 5px;">
+            </div>
+            <button id="btn-join" class="play-btn secondary">Unirse</button>
+        </div>
 
-            <!-- Initial Menu -->
-            <div id="menu-section">
-                <button id="btn-create" class="play-btn">Crear Sala</button>
-                <div style="margin: 1rem 0; font-weight: bold;">- O -</div>
-                <div class="input-group">
-                    <input type="text" id="room-code-input" placeholder="Código de Sala" maxlength="4" style="text-transform: uppercase; text-align: center; letter-spacing: 5px;">
+        <!-- LOBBY (Hidden initially) -->
+        <div id="lobby-section" class="lobby-grid hidden">
+            
+            <!-- LEFT: AVATAR STAGE -->
+            <div class="game-card stage-card">
+                <div class="room-header">
+                    <h3>Sala: <span id="display-room-code">????</span></h3>
+                    <p id="lobby-status">Esperando jugadores...</p>
                 </div>
-                <button id="btn-join" class="play-btn secondary">Unirse</button>
+
+                <div class="avatar-stage" id="avatar-stage">
+                    <!-- P1 -->
+                    <div class="avatar-container" id="p1-container">
+                        <div class="avatar-cube" id="p1-avatar">
+                            <div class="face">
+                                <div class="eyes">
+                                    <div class="eye left"></div>
+                                    <div class="eye right"></div>
+                                </div>
+                                <div class="mouth"></div>
+                            </div>
+                        </div>
+                        <div class="player-info">
+                            <div class="player-name" id="p1-name">Esperando...</div>
+                            <div class="ready-badge hidden" id="p1-ready">✅ LISTO</div>
+                        </div>
+                    </div>
+
+                    <!-- VS -->
+                    <div class="vs-divider">VS</div>
+
+                    <!-- P2 -->
+                    <div class="avatar-container" id="p2-container" style="opacity: 0.5;">
+                        <div class="avatar-cube p2" id="p2-avatar">
+                            <div class="face">
+                                <div class="eyes">
+                                    <div class="eye left"></div>
+                                    <div class="eye right"></div>
+                                </div>
+                                <div class="mouth"></div>
+                            </div>
+                        </div>
+                        <div class="player-info">
+                            <div class="player-name" id="p2-name">Esperando...</div>
+                            <div class="ready-badge hidden" id="p2-ready">✅ LISTO</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls-area">
+                    <p class="hint-text">💡 Mantén ESPACIO para cargar salto. Click en caras para saludar.</p>
+                    <button id="btn-ready" class="play-btn ready-btn">¡ESTOY LISTO!</button>
+                    <button id="btn-start" class="play-btn start-btn hidden" disabled>COMENZAR PARTIDA</button>
+                </div>
             </div>
 
-            <!-- Waiting Room (Hidden initially) -->
-            <div id="lobby-section" class="hidden" style="width: 100%;">
-                <div class="room-info">
-                    <h3>Sala: <span id="display-room-code" style="color: var(--primary); font-size: 2rem; letter-spacing: 3px;">????</span></h3>
-                    <p>Esperando jugadores...</p>
+            <!-- RIGHT: CHAT -->
+            <div class="game-card chat-card">
+                <h3>💬 Chat</h3>
+                <div class="chat-messages" id="chat-box"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Mensaje..." maxlength="50">
+                    <button id="btn-send" class="send-btn">➤</button>
                 </div>
-
-                <!-- Avatars Stage -->
-                <div class="avatar-stage">
-                    <!-- P1 (Host) -->
-                    <div class="avatar-wrapper" id="p1-wrapper">
-                        <div class="avatar-cube" id="p1-avatar">
-                            <div class="avatar-eyes">
-                                <div class="eye"></div><div class="eye"></div>
-                            </div>
-                        </div>
-                        <div class="avatar-name" id="p1-name">Esperando...</div>
-                    </div>
-
-                    <!-- P2 (Guest) -->
-                    <div class="avatar-wrapper" id="p2-wrapper" style="opacity: 0.5;">
-                        <div class="avatar-cube p2" id="p2-avatar">
-                            <div class="avatar-eyes">
-                                <div class="eye"></div><div class="eye"></div>
-                            </div>
-                        </div>
-                        <div class="avatar-name" id="p2-name">Esperando...</div>
-                    </div>
-                </div>
-
-                <!-- Chat -->
-                <div class="lobby-chat">
-                    <div class="chat-messages" id="chat-box"></div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chat-input" placeholder="Escribe algo..." maxlength="50">
-                        <button id="btn-send" class="play-btn small">Enviar</button>
-                    </div>
-                </div>
-                <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">💡 Pulsa ESPACIO para saltar</p>
-
-                <button id="btn-start" class="play-btn hidden" style="margin-top: 2rem;">¡EMPEZAR PARTIDA!</button>
             </div>
         </div>
     </div>
@@ -105,133 +126,248 @@
             }
         });
 
-        // Initialize Socket.IO with debug logs
-        const socket = io({
-            reconnectionAttempts: 5,
-            timeout: 10000,
-            transports: ['websocket', 'polling']
-        });
-
+        const socket = io();
         let myRoomCode = null;
-        let myRole = null; // 'host' or 'guest'
+        let myRole = null;
+        let mySid = null;
+        let isReady = false;
 
         // DOM Elements
         const menuSection = document.getElementById('menu-section');
         const lobbySection = document.getElementById('lobby-section');
         const displayRoomCode = document.getElementById('display-room-code');
+        const lobbyStatus = document.getElementById('lobby-status');
+        
         const p1Name = document.getElementById('p1-name');
         const p2Name = document.getElementById('p2-name');
-        const p2Wrapper = document.getElementById('p2-wrapper');
+        const p2Container = document.getElementById('p2-container');
+        const p1ReadyBadge = document.getElementById('p1-ready');
+        const p2ReadyBadge = document.getElementById('p2-ready');
+        
+        const btnReady = document.getElementById('btn-ready');
         const btnStart = document.getElementById('btn-start');
+        
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
-        const btnCreate = document.getElementById('btn-create');
-        const btnJoin = document.getElementById('btn-join');
+        const btnSend = document.getElementById('btn-send');
 
-        // --- Connection Debugging ---
+        // --- AVATAR LOGIC ---
+        const stage = document.getElementById('avatar-stage');
+        
+        // Eye Tracking
+        stage.addEventListener('mousemove', (e) => {
+            const eyes = document.querySelectorAll('.eye');
+            eyes.forEach(eye => {
+                if (eye.closest('.dizzy') || eye.closest('.happy')) return; // Don't track if dizzy/happy
+                
+                const rect = eye.getBoundingClientRect();
+                const x = rect.left + (rect.width / 2);
+                const y = rect.top + (rect.height / 2);
+                
+                const rad = Math.atan2(e.clientX - x, e.clientY - y);
+                const rot = (rad * (180 / Math.PI) * -1) + 180;
+                
+                eye.style.transform = `rotate(${rot}deg)`;
+            });
+        });
+
+        // Blinking
+        setInterval(() => {
+            const eyes = document.querySelectorAll('.eye');
+            eyes.forEach(eye => {
+                if (Math.random() > 0.1) return; // Random blink
+                eye.classList.add('blink');
+                setTimeout(() => eye.classList.remove('blink'), 200);
+            });
+        }, 3000);
+
+        // Happy Click
+        document.querySelectorAll('.avatar-cube').forEach(cube => {
+            cube.addEventListener('click', () => {
+                setFaceState(cube, 'happy');
+                setTimeout(() => setFaceState(cube, 'normal'), 1000);
+            });
+        });
+
+        function setFaceState(cube, state) {
+            const face = cube.querySelector('.face');
+            face.classList.remove('happy', 'dizzy');
+            if (state !== 'normal') face.classList.add(state);
+        }
+
+        // Jump Mechanics
+        let jumpCharge = 0;
+        let isCharging = false;
+        let lastJumpTime = 0;
+        const JUMP_COOLDOWN = 800;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && document.activeElement !== chatInput && !menuSection.classList.contains('hidden')) return;
+            if (e.code === 'Space' && document.activeElement !== chatInput) {
+                e.preventDefault();
+                const now = Date.now();
+                if (now - lastJumpTime < JUMP_COOLDOWN) return;
+                
+                if (!isCharging) {
+                    isCharging = true;
+                    jumpCharge = 0;
+                    const myAvatar = myRole === 'host' ? document.getElementById('p1-avatar') : document.getElementById('p2-avatar');
+                    myAvatar.classList.add('charging');
+                    socket.emit('avatar_jump', { room_code: myRoomCode, type: 'charge' });
+                    
+                    // Charge loop
+                    const chargeInterval = setInterval(() => {
+                        if (!isCharging || jumpCharge >= 100) {
+                            clearInterval(chargeInterval);
+                            return;
+                        }
+                        jumpCharge += 5;
+                    }, 50);
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space' && isCharging) {
+                isCharging = false;
+                lastJumpTime = Date.now();
+                
+                const myAvatar = myRole === 'host' ? document.getElementById('p1-avatar') : document.getElementById('p2-avatar');
+                myAvatar.classList.remove('charging');
+                
+                // Calculate jump power
+                const power = Math.min(jumpCharge, 100);
+                const type = power > 50 ? 'super-jump' : 'jump';
+                
+                performJump(myAvatar, type);
+                socket.emit('avatar_jump', { room_code: myRoomCode, type: type });
+            }
+        });
+
+        function performJump(element, type) {
+            element.classList.remove('jump', 'super-jump');
+            void element.offsetWidth; // Reflow
+            element.classList.add(type);
+            
+            if (type === 'super-jump') {
+                setTimeout(() => {
+                    setFaceState(element, 'dizzy');
+                    setTimeout(() => setFaceState(element, 'normal'), 2000);
+                }, 500); // Wait for landing roughly
+            }
+        }
+
+        // --- SOCKET LOGIC ---
+
         socket.on('connect', () => {
-            console.log('✅ Conectado al servidor SocketIO:', socket.id);
+             console.log('✅ Connected');
+             mySid = socket.id;
         });
 
-        socket.on('connect_error', (err) => {
-            console.error('❌ Error de conexión:', err);
-            alert('Error conectando al servidor de juego. Revisa tu conexión.');
-            btnCreate.textContent = "Crear Sala";
-            btnCreate.disabled = false;
-            btnJoin.textContent = "Unirse";
-            btnJoin.disabled = false;
-        });
-
-        // --- Menu Actions ---
-        btnCreate.addEventListener('click', () => {
-            console.log('🖱️ Click en Crear Sala');
-            btnCreate.textContent = "Creando...";
-            btnCreate.disabled = true;
+        // Create/Join
+        document.getElementById('btn-create').addEventListener('click', () => {
             const username = "{{ session.get('username', 'Invitado') }}";
             socket.emit('create_room', { username: username });
         });
 
-        btnJoin.addEventListener('click', () => {
-            console.log('🖱️ Click en Unirse');
+        document.getElementById('btn-join').addEventListener('click', () => {
             const code = document.getElementById('room-code-input').value;
-            if (!code) {
-                alert("Por favor, introduce un código de sala.");
-                return;
-            }
-            
-            btnJoin.textContent = "Uniéndose...";
-            btnJoin.disabled = true;
-            
+            if (!code) return alert("Introduce código");
             const username = "{{ session.get('username', 'Invitado') }}";
             socket.emit('join_room', { room_code: code, username: username });
         });
 
-        // --- Socket Events ---
         socket.on('room_created', (data) => {
-            console.log('🏠 Sala creada:', data);
             myRoomCode = data.room_code;
             myRole = 'host';
-            showLobby();
+            setupLobby();
             p1Name.textContent = "{{ session.get('username', 'Invitado') }}";
         });
 
         socket.on('player_joined', (data) => {
-            console.log('👤 Jugador unido:', data);
             const players = data.players;
             const playerNames = data.player_names || {};
-            
             myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase();
-            showLobby();
             
-            // Reset states
-            p2Wrapper.style.opacity = '0.5';
-            p2Name.textContent = 'Esperando...';
-            btnStart.classList.add('hidden');
-
-            // Map players to slots
-            // We assume the first player in the list (or the one with role 'host') is P1
-            // But the list order might vary. Let's use roles if available, or order.
+            setupLobby();
             
+            // Update UI based on players
             let hostFound = false;
             let guestFound = false;
-
+            
+            // Reset
+            p2Container.style.opacity = '0.5';
+            p2Name.textContent = 'Esperando...';
+            lobbyStatus.textContent = "Esperando jugadores...";
+            
             players.forEach(sid => {
-                // We need the role or we infer it. 
-                // The server sends 'players' as a list of SIDs.
-                // And 'player_names' as a dict {sid: name}.
-                // We don't have roles in this payload structure from the recent events.py update!
-                // Wait, events.py sends: 'players': list(room['players'].keys()), 'player_names': ...
-                // It DOES NOT send roles in the top level list anymore.
-                
-                // We need to infer P1/P2. usually first joined is P1.
-                // Let's just fill slots.
                 const name = playerNames[sid] || 'Jugador';
-                
                 if (!hostFound) {
                     p1Name.textContent = name;
                     hostFound = true;
                 } else {
                     p2Name.textContent = name;
-                    p2Wrapper.style.opacity = '1';
+                    p2Container.style.opacity = '1';
                     guestFound = true;
                 }
             });
-            
-            if (myRole === 'host' && guestFound) {
-                btnStart.classList.remove('hidden');
+
+            if (hostFound && guestFound) {
+                lobbyStatus.textContent = "¡Sala llena! Confirmad que estáis listos.";
+                lobbyStatus.style.color = "var(--primary)";
             }
         });
 
-        socket.on('error', (data) => {
-            console.error('⚠️ Error del servidor:', data);
-            alert(data.message);
-            // Reset buttons
-            btnCreate.textContent = "Crear Sala";
-            btnCreate.disabled = false;
-            btnJoin.textContent = "Unirse";
-            btnJoin.disabled = false;
+        socket.on('player_ready_update', (data) => {
+            // Find which player is ready based on SID? 
+            // We don't easily know which SID is P1/P2 without storing it.
+            // But we can infer from the 'player_joined' logic or just ask server for full state.
+            // For simplicity, let's just toggle the badge if we knew who it was.
+            // Actually, let's just re-request state or handle it simpler:
+            // We need to know if 'data.sid' corresponds to P1 or P2.
+            // P1 is usually the first one.
+            
+            // Better approach: The server should send the list of ready players or we assume order.
+            // Let's just show the badge on the correct avatar.
+            // We need to store P1/P2 SIDs.
+            // Let's hack it: if data.sid == mySid, it's me. If not, it's opponent.
+            
+            const isMe = data.sid === mySid;
+            const myAvatarIdx = myRole === 'host' ? 1 : 2;
+            const targetIdx = isMe ? myAvatarIdx : (myAvatarIdx === 1 ? 2 : 1);
+            
+            const badge = document.getElementById(`p${targetIdx}-ready`);
+            if (data.ready) badge.classList.remove('hidden');
+            else badge.classList.add('hidden');
         });
 
+        socket.on('all_ready', (data) => {
+            if (data.ready) {
+                lobbyStatus.textContent = "¡TODOS LISTOS!";
+                if (myRole === 'host') {
+                    btnStart.classList.remove('hidden');
+                    btnStart.disabled = false;
+                    btnStart.classList.add('pulse'); // Add pulse effect
+                } else {
+                    lobbyStatus.textContent = "Esperando a que el anfitrión inicie...";
+                }
+            } else {
+                btnStart.classList.add('hidden');
+                btnStart.disabled = true;
+            }
+        });
+
+        socket.on('avatar_anim', (data) => {
+            const otherAvatar = myRole === 'host' ? document.getElementById('p2-avatar') : document.getElementById('p1-avatar');
+            
+            if (data.type === 'charge') {
+                otherAvatar.classList.add('charging');
+            } else {
+                otherAvatar.classList.remove('charging');
+                performJump(otherAvatar, data.type);
+            }
+        });
+        
         socket.on('chat_message', (data) => {
             const msg = document.createElement('div');
             msg.className = 'chat-msg';
@@ -240,27 +376,30 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         });
 
-        socket.on('avatar_jump', (data) => {
-            if (data.sid !== socket.id) {
-                const otherAvatar = myRole === 'host' ? document.getElementById('p2-avatar') : document.getElementById('p1-avatar');
-                jumpAvatar(otherAvatar);
-            }
-        });
-
-        socket.on('game_started', (data) => {
-            console.log('🎮 Juego iniciado');
+        socket.on('game_started', () => {
             window.location.href = `/versus/${myRoomCode}`;
         });
 
-        // --- Interactions ---
-        function showLobby() {
+        // --- ACTIONS ---
+        
+        function setupLobby() {
             menuSection.classList.add('hidden');
             lobbySection.classList.remove('hidden');
             displayRoomCode.textContent = myRoomCode;
         }
 
-        // Chat
-        document.getElementById('btn-send').addEventListener('click', sendChat);
+        btnReady.addEventListener('click', () => {
+            socket.emit('toggle_ready', { room_code: myRoomCode });
+            isReady = !isReady;
+            btnReady.textContent = isReady ? "Cancelar" : "¡ESTOY LISTO!";
+            btnReady.classList.toggle('secondary');
+        });
+
+        btnStart.addEventListener('click', () => {
+            socket.emit('start_game', { room_code: myRoomCode });
+        });
+
+        btnSend.addEventListener('click', sendChat);
         chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendChat(); });
 
         function sendChat() {
@@ -270,37 +409,6 @@
                 chatInput.value = '';
             }
         }
-
-        // Jump
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && document.activeElement !== chatInput && !menuSection.classList.contains('hidden') === false) {
-                e.preventDefault();
-                const myAvatar = myRole === 'host' ? document.getElementById('p1-avatar') : document.getElementById('p2-avatar');
-                jumpAvatar(myAvatar);
-                socket.emit('avatar_jump', { room_code: myRoomCode });
-            }
-        });
-
-        function jumpAvatar(element) {
-            element.classList.remove('jumping');
-            void element.offsetWidth; // Trigger reflow
-            element.classList.add('jumping');
-        }
-
-        // Start Game
-        btnStart.addEventListener('click', () => {
-            socket.emit('start_game', { room_code: myRoomCode });
-        });
-
-        // Prevent FOUC
-        document.addEventListener('DOMContentLoaded', () => {
-            document.body.classList.add('loaded');
-        });
-
-        // Clean disconnect on back
-        window.addEventListener('beforeunload', () => {
-            socket.disconnect();
-        });
     </script>
 </body>
 </html>

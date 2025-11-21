@@ -222,6 +222,33 @@ def register_events(socketio):
             # Reset game
             handle_start_game({'room_code': room_code})
 
+    @socketio.on('toggle_ready')
+    def handle_ready(data):
+        room_code = data.get('room_code')
+        if room_code not in rooms:
+            return
+            
+        room = rooms[room_code]
+        if request.sid in room['players']:
+            # Toggle ready state
+            room['players'][request.sid]['ready'] = not room['players'][request.sid]['ready']
+            
+            # Broadcast update
+            emit('player_ready_update', {
+                'sid': request.sid, 
+                'ready': room['players'][request.sid]['ready']
+            }, to=room_code)
+            
+            # Check if ALL players are ready (and at least 2)
+            players = room['players']
+            if len(players) >= 2 and all(p['ready'] for p in players.values()):
+                # Auto-start or notify that game can start?
+                # User asked for "confirmation button". 
+                # Let's emit 'all_ready' event so frontend can show a "Start Game" button or countdown.
+                emit('all_ready', {'ready': True}, to=room_code)
+            else:
+                emit('all_ready', {'ready': False}, to=room_code)
+
     @socketio.on('chat_message')
     def handle_chat(data):
         room_code = data.get('room_code')
@@ -233,5 +260,8 @@ def register_events(socketio):
     @socketio.on('avatar_jump')
     def handle_jump(data):
         room_code = data.get('room_code')
+        # data can contain 'type': 'jump' or 'charge' or 'land'
+        action_type = data.get('type', 'jump')
+        
         if room_code in rooms:
-            emit('avatar_jump', {'sid': request.sid}, to=room_code, include_self=False)
+            emit('avatar_anim', {'sid': request.sid, 'type': action_type}, to=room_code, include_self=False)

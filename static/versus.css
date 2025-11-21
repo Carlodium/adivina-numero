@@ -1,186 +1,318 @@
-/* Versus Mode Styles */
-
-/* --- Lobby & Avatars --- */
-.lobby-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
-    margin-top: 2rem;
+/* --- VERSUS LOBBY LAYOUT --- */
+.lobby-wrapper {
+    max-width: 1200px; /* Wider for sidebar */
 }
 
+.lobby-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 1.5rem;
+    width: 100%;
+    height: 600px;
+}
+
+.stage-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.chat-card {
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.4);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- HEADER --- */
+.room-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+#display-room-code {
+    font-family: 'Courier New', monospace;
+    font-size: 2.5rem;
+    color: var(--primary);
+    letter-spacing: 5px;
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+#lobby-status {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+}
+
+/* --- AVATAR STAGE --- */
 .avatar-stage {
     display: flex;
     justify-content: center;
+    align-items: flex-end;
     gap: 4rem;
-    margin: 2rem 0;
-    perspective: 1000px;
+    height: 250px;
+    width: 100%;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.avatar-wrapper {
+.avatar-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    position: relative;
 }
 
+.player-info {
+    text-align: center;
+}
+
+.player-name {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.ready-badge {
+    background: #4ade80;
+    color: #000;
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+.vs-divider {
+    font-size: 3rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.1);
+    align-self: center;
+}
+
+/* --- AVATAR CUBE --- */
 .avatar-cube {
-    width: 100px;
-    height: 100px;
-    background: var(--primary);
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary), #f59e0b);
     border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
     position: relative;
-    box-shadow: 0 10px 0 rgba(0,0,0,0.3); /* 2D "3D" effect */
     transition: transform 0.1s;
+    cursor: pointer;
 }
 
 .avatar-cube.p2 {
-    background: #ef4444; /* Red for P2 */
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
 }
 
-.avatar-eyes {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.face {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.eyes {
     display: flex;
     gap: 15px;
+    margin-bottom: 10px;
 }
 
 .eye {
     width: 12px;
     height: 12px;
+    background: black;
+    border-radius: 50%;
+    position: relative;
+    transition: height 0.1s, border-radius 0.1s;
+}
+
+/* Eye Tracking Pupil Effect (Pseudo-element) */
+.eye::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 4px;
+    height: 4px;
     background: white;
     border-radius: 50%;
-    animation: blink 4s infinite;
+    opacity: 0.7;
 }
 
-.avatar-name {
-    font-weight: bold;
-    font-size: 1.2rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+/* --- ANIMATIONS --- */
+
+/* Blink */
+.eye.blink {
+    height: 2px;
+    border-radius: 0;
+    margin-top: 5px;
 }
 
-/* Jump Animation */
-@keyframes jump {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-50px); }
+/* Happy Eyes */
+.face.happy .eye {
+    height: 8px;
+    width: 14px;
+    border-radius: 0;
+    background: transparent;
+    border-top: 3px solid black;
+    margin-top: 5px;
+}
+.face.happy .eye::after { display: none; }
+
+/* Dizzy Eyes (Spirals) */
+.face.dizzy .eye {
+    background: transparent;
+    border: 2px solid black;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    position: relative;
+}
+.face.dizzy .eye::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 100%; height: 2px;
+    background: black;
+    transform: translate(-50%, -50%) rotate(0deg);
+    animation: spin 1s linear infinite;
+}
+.face.dizzy .eye::after { display: none; }
+
+@keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* Jump & Charge */
+.avatar-cube.charging {
+    transform: scale(1.2, 0.7) translateY(20px); /* Squash */
+    filter: brightness(1.2);
+}
+
+.avatar-cube.jump {
+    animation: jumpSimple 0.5s ease-out;
+}
+
+.avatar-cube.super-jump {
+    animation: jumpSuper 1s cubic-bezier(0.25, 1.5, 0.5, 1);
+}
+
+@keyframes jumpSimple {
+    0% { transform: scale(1); }
+    50% { transform: translateY(-100px) rotate(10deg); }
     100% { transform: translateY(0); }
 }
 
-.jumping {
-    animation: jump 0.5s ease-in-out;
+@keyframes jumpSuper {
+    0% { transform: scale(1.2, 0.7); }
+    10% { transform: scale(0.8, 1.4) translateY(-20px); }
+    50% { transform: translateY(-250px) rotate(360deg) scale(1.1); }
+    100% { transform: translateY(0) scale(1); }
 }
 
-/* Chat Box */
-.lobby-chat {
-    width: 100%;
-    max-width: 500px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 1rem;
-    padding: 1rem;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
+/* --- CHAT SIDEBAR --- */
 .chat-messages {
-    height: 150px;
+    flex-grow: 1;
     overflow-y: auto;
-    margin-bottom: 1rem;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-}
-
-.chat-msg {
-    font-size: 0.9rem;
-    padding: 0.3rem 0.6rem;
-    background: rgba(255,255,255,0.05);
-    border-radius: 0.5rem;
-    width: fit-content;
 }
 
 .chat-input-area {
     display: flex;
-    gap: 0.5rem;
-}
-
-/* --- Game Arena --- */
-.versus-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
     padding: 1rem;
-    background: rgba(0,0,0,0.2);
-    border-radius: 1rem;
+    gap: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.turn-indicator {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: rgba(255,255,255,0.1);
-    font-weight: bold;
+.chat-input-area input {
+    flex-grow: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 0.8rem;
+    border-radius: 10px;
+    color: white;
 }
 
-.turn-indicator.active {
-    background: var(--primary);
-    box-shadow: 0 0 15px var(--primary);
-}
-
-/* Coin Flip Animation */
-.coin-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.coin {
-    width: 150px;
-    height: 150px;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.coin-face {
-    position: absolute;
-    width: 100%;
-    height: 100%;
+.send-btn {
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
-    backface-visibility: hidden;
+    background: var(--primary);
+    border: none;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 3rem;
-    font-weight: bold;
-    border: 5px solid #fbbf24;
-    background: #1e293b;
+    transition: transform 0.2s;
 }
 
-.coin-front {
-    transform: rotateY(0deg);
-    color: var(--primary); /* Blue/Cyan */
+.send-btn:hover {
+    transform: scale(1.1);
 }
 
-.coin-back {
-    transform: rotateY(180deg);
-    color: #ef4444; /* Red */
+/* --- CONTROLS --- */
+.controls-area {
+    width: 100%;
+    text-align: center;
 }
 
-@keyframes blink {
-    0%, 96%, 100% { transform: scaleY(1); }
-    98% { transform: scaleY(0.1); }
+.hint-text {
+    font-size: 0.8rem;
+    opacity: 0.6;
+    margin-bottom: 1rem;
 }
 
-@keyframes coinSpin {
-    0% { transform: rotateY(0deg); }
-    100% { transform: rotateY(1800deg); }
+.ready-btn {
+    background: #3b82f6; /* Blue */
+    width: 100%;
+}
+
+.ready-btn.secondary {
+    background: #ef4444; /* Red for cancel */
+}
+
+.start-btn {
+    width: 100%;
+    margin-top: 1rem;
+    background: #10b981; /* Green */
+}
+
+.start-btn.pulse {
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    .lobby-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .chat-card {
+        height: 300px;
+    }
 }
