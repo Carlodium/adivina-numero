@@ -133,6 +133,15 @@ def register_events(socketio):
                 }, to=request.sid)
                 return
             
+            # Check if enough players
+            if len(rooms[room_code]['players']) < 2:
+                player_names = {sid: p['username'] for sid, p in rooms[room_code]['players'].items()}
+                emit('waiting_for_players', {
+                    'players': list(rooms[room_code]['players'].keys()),
+                    'player_names': player_names
+                }, to=request.sid)
+                return
+
             # Generate secret number
             rooms[room_code]['number'] = random.randint(1, 100)
             rooms[room_code]['status'] = 'playing'

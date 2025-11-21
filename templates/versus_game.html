@@ -99,10 +99,15 @@
             }
         });
 
-        // Ensure unique username for guests
+        // Ensure unique username for guests (persist in session storage)
         let username = "{{ session.get('username', 'Jugador') }}";
         if (username === 'Jugador') {
-            username += '_' + Math.floor(Math.random() * 1000);
+            let storedName = sessionStorage.getItem('guest_username');
+            if (!storedName) {
+                storedName = 'Jugador_' + Math.floor(Math.random() * 1000);
+                sessionStorage.setItem('guest_username', storedName);
+            }
+            username = storedName;
         }
 
         // --- SOCKET EVENTS ---
@@ -115,6 +120,19 @@
         socket.on('player_joined', (data) => {
             console.log('👥 Joined room successfully, requesting game state');
             socket.emit('start_game', { room_code: roomCode });
+        });
+
+        socket.on('waiting_for_players', (data) => {
+             console.log('⏳ Waiting for players...');
+             statusMsg.textContent = "⏳ Esperando a que se una otro jugador...";
+             statusMsg.style.color = "var(--text-muted)";
+             
+             // Update names if available (e.g. just me)
+             if (data.players && data.player_names) {
+                 const p1Sid = data.players[0];
+                 const p1NameEl = document.getElementById('p1-name');
+                 if (p1NameEl) p1NameEl.textContent = data.player_names[p1Sid] || 'Jugador 1';
+             }
         });
 
         socket.on('game_started', (data) => {
