@@ -24,11 +24,6 @@
     </div>
 
     <div class="stars"></div>
-    
-    <!-- Coin Flip Overlay (REMOVED) -->
-    <div id="coin-overlay" class="coin-overlay hidden">
-        <!-- Overlay kept hidden just in case logic references it, but empty -->
-    </div>
 
     <div class="container">
         <div class="game-card">
@@ -56,7 +51,7 @@
                     <button id="btn-guess" class="play-btn" disabled>Adivinar</button>
                 </div>
                 
-                <p id="status-msg" style="margin-top: 1rem; color: var(--text-muted);">Esperando turno...</p>
+                <p id="status-msg" style="margin-top: 1rem; color: var(--text-muted);">Conectando...</p>
             </div>
         </div>
     </div>
@@ -65,22 +60,27 @@
     <div id="game-over-modal" class="coin-overlay hidden" style="background: rgba(0,0,0,0.95);">
         <h1 id="winner-text" style="font-size: 3rem; color: #fbbf24; margin-bottom: 1rem;">¡VICTORIA!</h1>
         <p style="color: white; font-size: 1.5rem;">El número era: <span id="secret-number" style="color: var(--primary);">42</span></p>
-        <a href="/versus" class="play-btn" style="margin-top: 2rem;">Volver al Lobby</a>
+        
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+            <button id="btn-rematch" class="play-btn">Volver a Jugar (<span id="rematch-count">0</span>/2)</button>
+            <a href="/versus" class="play-btn" style="background: transparent; border: 1px solid white;">Salir</a>
+        </div>
     </div>
 
     <script>
         const socket = io();
         const roomCode = "{{ room_code }}";
-        let myTurn = false;
-
+        
         // DOM Elements
-        const p1Ind = document.getElementById('p1-indicator');
-        const p2Ind = document.getElementById('p2-indicator');
+        const p1NameEl = document.getElementById('p1-name');
+        const p2NameEl = document.getElementById('p2-name');
         const guessInput = document.getElementById('guess-input');
         const btnGuess = document.getElementById('btn-guess');
         const gameLog = document.getElementById('game-log');
         const statusMsg = document.getElementById('status-msg');
         const gameOverModal = document.getElementById('game-over-modal');
+        const btnRematch = document.getElementById('btn-rematch');
+        const rematchCount = document.getElementById('rematch-count');
 
         // Theme persistence
         const savedTheme = localStorage.getItem('theme');
@@ -99,79 +99,74 @@
             }
         });
 
-        // Ensure unique username for guests (persist in session storage)
-        let username = "{{ session.get('username', 'Jugador') }}";
-        if (username === 'Jugador') {
+        // --- USERNAME MANAGEMENT ---
+        // Only use unique ID for guests ("Jugador"). Logged in users use their session name.
+        let clientUsername = "{{ session.get('username', 'Jugador') }}";
+        
+        if (clientUsername === 'Jugador') {
+            // It's a guest, check/create persistent ID
             let storedName = sessionStorage.getItem('guest_username');
             if (!storedName) {
-                storedName = 'Jugador_' + Math.floor(Math.random() * 1000);
+                storedName = 'Jugador_' + Math.floor(Math.random() * 10000);
                 sessionStorage.setItem('guest_username', storedName);
             }
-            username = storedName;
+            clientUsername = storedName;
         }
+        
+        console.log('🆔 Identity:', clientUsername);
 
         // --- SOCKET EVENTS ---
 
         socket.on('connect', () => {
-             console.log('✅ Connected to game server');
-             socket.emit('join_room', { room_code: roomCode, username: username });
+             console.log('✅ Connected');
+             socket.emit('join_room', { room_code: roomCode, username: clientUsername });
         });
 
         socket.on('player_joined', (data) => {
-            console.log('👥 Joined room successfully, requesting game state');
-            socket.emit('start_game', { room_code: roomCode });
+            console.log('👥 Player Update:', data);
+            updatePlayerNames(data);
+            
+            const count = data.players.length;
+            if (count < 2) {
+                updateStatus(`⏳ Esperando rival... (${count}/2)`);
+            } else {
+                // If we have 2 players, requesting start is safe
+                socket.emit('start_game', { room_code: roomCode });
+            }
         });
 
         socket.on('waiting_for_players', (data) => {
-             console.log('⏳ Waiting for players...');
-             statusMsg.textContent = "⏳ Esperando a que se una otro jugador...";
-             statusMsg.style.color = "var(--text-muted)";
-             
-             // Update names if available (e.g. just me)
-             if (data.players && data.player_names) {
-                 const p1Sid = data.players[0];
-                 const p1NameEl = document.getElementById('p1-name');
-                 if (p1NameEl) p1NameEl.textContent = data.player_names[p1Sid] || 'Jugador 1';
-             }
+             updatePlayerNames(data);
+             updateStatus(`⏳ Esperando rival... (${data.players.length}/2)`);
         });
 
         socket.on('game_started', (data) => {
-            console.log('🎮 Game started!', data);
-            
-            // 1. Update Player Names
-            if (data.player_names && data.players && data.players.length >= 2) {
-                const p1Sid = data.players[0];
-                const p2Sid = data.players[1];
-                
-                const p1NameEl = document.getElementById('p1-name');
-                const p2NameEl = document.getElementById('p2-name');
-                
-                if (p1NameEl) p1NameEl.textContent = data.player_names[p1Sid] || 'Jugador 1';
-                if (p2NameEl) p2NameEl.textContent = data.player_names[p2Sid] || 'Jugador 2';
-            }
+            console.log('🎮 Game Started');
+            gameOverModal.classList.add('hidden');
+            gameLog.innerHTML = ''; // Clear log
+            rematchCount.textContent = '0';
+            btnRematch.disabled = false;
+            btnRematch.textContent = `Volver a Jugar (0/2)`;
 
-            // 2. Direct Start (No Coin Flip)
-            const firstPlayerName = data.player_names[data.first_turn] || 'Jugador';
+            updatePlayerNames(data);
             
-            // Add system message to log
-            addSystemMessage(`📢 ¡La partida ha comenzado! Empieza <strong>${firstPlayerName}</strong>`);
-
-            // Update UI for turn
+            const starterName = data.player_names[data.first_turn];
+            addSystemMessage(`📢 ¡Empieza <strong>${starterName}</strong>!`);
+            
             updateTurnUI(data.first_turn);
         });
 
         socket.on('turn_result', (data) => {
-            // Add to log
-            const msg = document.createElement('div');
-            msg.className = 'chat-msg';
-            msg.style.width = '100%';
-            msg.style.textAlign = 'center';
-            
             const isMe = data.player === socket.id;
             const color = isMe ? 'var(--primary)' : '#ef4444';
             const text = data.result === 'low' ? 'Muy bajo ⬆️' : 'Muy alto ⬇️';
             
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg';
+            msg.style.width = '100%';
+            msg.style.textAlign = 'center';
             msg.innerHTML = `<span style="color:${color}">${isMe ? 'Tú' : 'Rival'}</span> dijo ${data.guess}: <strong>${text}</strong>`;
+            
             gameLog.appendChild(msg);
             gameLog.scrollTop = gameLog.scrollHeight;
 
@@ -183,34 +178,48 @@
             document.getElementById('winner-text').textContent = isWin ? "¡VICTORIA! 🏆" : "DERROTA 💀";
             document.getElementById('secret-number').textContent = data.number;
             gameOverModal.classList.remove('hidden');
+            updateStatus("🏁 Partida terminada");
+        });
+        
+        socket.on('rematch_update', (data) => {
+            rematchCount.textContent = data.votes;
+            btnRematch.textContent = `Volver a Jugar (${data.votes}/2)`;
         });
 
-        // --- HELPER FUNCTIONS ---
+        // --- HELPERS ---
+
+        function updatePlayerNames(data) {
+            if (data.players && data.player_names) {
+                const p1Sid = data.players[0];
+                const p2Sid = data.players[1]; // Might be undefined
+                
+                if (p1Sid) p1NameEl.textContent = data.player_names[p1Sid];
+                if (p2Sid) p2NameEl.textContent = data.player_names[p2Sid] || 'Esperando...';
+                else p2NameEl.textContent = 'Esperando...';
+            }
+        }
 
         function updateTurnUI(currentTurnSid) {
-            myTurn = currentTurnSid === socket.id;
+            const myTurn = currentTurnSid === socket.id;
             
-            // Visual indicators
             if (myTurn) {
-                statusMsg.innerHTML = "✨ <strong>¡TU TURNO!</strong> Introduce un número.";
+                updateStatus("✨ ¡TU TURNO! Elige un número.");
                 statusMsg.style.color = "var(--primary)";
-                statusMsg.style.transform = "scale(1.1)";
-                
                 guessInput.disabled = false;
                 btnGuess.disabled = false;
                 guessInput.focus();
-                
                 document.body.style.borderColor = "var(--primary)";
             } else {
-                statusMsg.textContent = "⏳ Esperando al rival...";
+                updateStatus("⏳ Turno del rival...");
                 statusMsg.style.color = "var(--text-muted)";
-                statusMsg.style.transform = "scale(1)";
-                
                 guessInput.disabled = true;
                 btnGuess.disabled = true;
-                
                 document.body.style.borderColor = "transparent";
             }
+        }
+
+        function updateStatus(msg) {
+            statusMsg.textContent = msg;
         }
 
         function addSystemMessage(html) {
@@ -219,23 +228,27 @@
             msg.style.width = '100%';
             msg.style.textAlign = 'center';
             msg.style.color = '#fbbf24';
-            msg.style.fontSize = '0.9rem';
-            msg.style.marginBottom = '0.5rem';
             msg.innerHTML = html;
             gameLog.appendChild(msg);
         }
 
         function sendGuess() {
             const val = guessInput.value;
-            if (val && myTurn) {
+            if (val) {
                 socket.emit('make_guess', { room_code: roomCode, guess: val });
                 guessInput.value = '';
             }
         }
 
-        // Actions
+        // --- ACTIONS ---
         btnGuess.addEventListener('click', sendGuess);
         guessInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendGuess(); });
+        
+        btnRematch.addEventListener('click', () => {
+            socket.emit('vote_rematch', { room_code: roomCode });
+            btnRematch.disabled = true;
+            btnRematch.textContent = "Esperando al rival...";
+        });
 
         // Prevent FOUC
         document.addEventListener('DOMContentLoaded', () => {
