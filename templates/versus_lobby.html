@@ -8,6 +8,72 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='versus.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="stars2"></div>
+
+    <div class="container">
+        <a href="/" class="back-link">⬅️ Volver al Hub</a>
+
+        <div class="game-card lobby-container">
+            <h1>⚔️ Modo Versus</h1>
+
+            <!-- Initial Menu -->
+            <div id="menu-section">
+                <button id="btn-create" class="play-btn">Crear Sala</button>
+                <div style="margin: 1rem 0; font-weight: bold;">- O -</div>
+                <div class="input-group">
+                    <input type="text" id="room-code-input" placeholder="Código de Sala" maxlength="4" style="text-transform: uppercase; text-align: center; letter-spacing: 5px;">
+                </div>
+                <button id="btn-join" class="play-btn secondary">Unirse</button>
+            </div>
+
+            <!-- Waiting Room (Hidden initially) -->
+            <div id="lobby-section" class="hidden" style="width: 100%;">
+                <div class="room-info">
+                    <h3>Sala: <span id="display-room-code" style="color: var(--primary); font-size: 2rem; letter-spacing: 3px;">????</span></h3>
+                    <p>Esperando jugadores...</p>
+                </div>
+
+                <!-- Avatars Stage -->
+                <div class="avatar-stage">
+                    <!-- P1 (Host) -->
+                    <div class="avatar-wrapper" id="p1-wrapper">
+                        <div class="avatar-cube" id="p1-avatar">
+                            <div class="avatar-eyes">
+                                <div class="eye"></div><div class="eye"></div>
+                            </div>
+                        </div>
+                        <div class="avatar-name" id="p1-name">Esperando...</div>
+                    </div>
+
+                    <!-- P2 (Guest) -->
+                    <div class="avatar-wrapper" id="p2-wrapper" style="opacity: 0.5;">
+                        <div class="avatar-cube p2" id="p2-avatar">
+                            <div class="avatar-eyes">
+                                <div class="eye"></div><div class="eye"></div>
+                            </div>
+                        </div>
+                        <div class="avatar-name" id="p2-name">Esperando...</div>
+                    </div>
+                </div>
+
+                <!-- Chat -->
+                <div class="lobby-chat">
+                    <div class="chat-messages" id="chat-box"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="Escribe algo..." maxlength="50">
+                        <button id="btn-send" class="play-btn small">Enviar</button>
+                    </div>
+                </div>
+                <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">💡 Pulsa ESPACIO para saltar</p>
+
+                <button id="btn-start" class="play-btn hidden" style="margin-top: 2rem;">¡EMPEZAR PARTIDA!</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize Socket.IO with debug logs
         const socket = io({
