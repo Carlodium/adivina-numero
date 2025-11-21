@@ -25,8 +25,10 @@
 
     <div class="stars"></div>
     
-    <!-- Coin Flip Overlay -->
-
+    <!-- Coin Flip Overlay (REMOVED) -->
+    <div id="coin-overlay" class="coin-overlay hidden">
+        <!-- Overlay kept hidden just in case logic references it, but empty -->
+    </div>
 
     <div class="container">
         <div class="game-card">
@@ -63,4 +65,164 @@
     <div id="game-over-modal" class="coin-overlay hidden" style="background: rgba(0,0,0,0.95);">
         <h1 id="winner-text" style="font-size: 3rem; color: #fbbf24; margin-bottom: 1rem;">¡VICTORIA!</h1>
         <p style="color: white; font-size: 1.5rem;">El número era: <span id="secret-number" style="color: var(--primary);">42</span></p>
+        <a href="/versus" class="play-btn" style="margin-top: 2rem;">Volver al Lobby</a>
+    </div>
+
+    <script>
+        const socket = io();
+        const roomCode = "{{ room_code }}";
+        let myTurn = false;
+
+        // DOM Elements
+        const p1Ind = document.getElementById('p1-indicator');
+        const p2Ind = document.getElementById('p2-indicator');
+        const guessInput = document.getElementById('guess-input');
+        const btnGuess = document.getElementById('btn-guess');
+        const gameLog = document.getElementById('game-log');
+        const statusMsg = document.getElementById('status-msg');
+        const gameOverModal = document.getElementById('game-over-modal');
+
+        // Theme persistence
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('checkbox').checked = true;
+        }
+
+        document.getElementById('checkbox').addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.classList.remove('light-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // Ensure unique username for guests
+        let username = "{{ session.get('username', 'Jugador') }}";
+        if (username === 'Jugador') {
+            username += '_' + Math.floor(Math.random() * 1000);
+        }
+
+        // --- SOCKET EVENTS ---
+
+        socket.on('connect', () => {
+             console.log('✅ Connected to game server');
+             socket.emit('join_room', { room_code: roomCode, username: username });
+        });
+
+        socket.on('player_joined', (data) => {
+            console.log('👥 Joined room successfully, requesting game state');
+            socket.emit('start_game', { room_code: roomCode });
+        });
+
+        socket.on('game_started', (data) => {
+            console.log('🎮 Game started!', data);
+            
+            // 1. Update Player Names
+            if (data.player_names && data.players && data.players.length >= 2) {
+                const p1Sid = data.players[0];
+                const p2Sid = data.players[1];
+                
+                const p1NameEl = document.getElementById('p1-name');
+                const p2NameEl = document.getElementById('p2-name');
+                
+                if (p1NameEl) p1NameEl.textContent = data.player_names[p1Sid] || 'Jugador 1';
+                if (p2NameEl) p2NameEl.textContent = data.player_names[p2Sid] || 'Jugador 2';
+            }
+
+            // 2. Direct Start (No Coin Flip)
+            const firstPlayerName = data.player_names[data.first_turn] || 'Jugador';
+            
+            // Add system message to log
+            addSystemMessage(`📢 ¡La partida ha comenzado! Empieza <strong>${firstPlayerName}</strong>`);
+
+            // Update UI for turn
+            updateTurnUI(data.first_turn);
+        });
+
+        socket.on('turn_result', (data) => {
+            // Add to log
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg';
+            msg.style.width = '100%';
+            msg.style.textAlign = 'center';
+            
+            const isMe = data.player === socket.id;
+            const color = isMe ? 'var(--primary)' : '#ef4444';
+            const text = data.result === 'low' ? 'Muy bajo ⬆️' : 'Muy alto ⬇️';
+            
+            msg.innerHTML = `<span style="color:${color}">${isMe ? 'Tú' : 'Rival'}</span> dijo ${data.guess}: <strong>${text}</strong>`;
+            gameLog.appendChild(msg);
+            gameLog.scrollTop = gameLog.scrollHeight;
+
+            updateTurnUI(data.next_turn);
+        });
+
+        socket.on('game_over', (data) => {
+            const isWin = data.winner === socket.id;
+            document.getElementById('winner-text').textContent = isWin ? "¡VICTORIA! 🏆" : "DERROTA 💀";
+            document.getElementById('secret-number').textContent = data.number;
+            gameOverModal.classList.remove('hidden');
+        });
+
+        // --- HELPER FUNCTIONS ---
+
+        function updateTurnUI(currentTurnSid) {
+            myTurn = currentTurnSid === socket.id;
+            
+            // Visual indicators
+            if (myTurn) {
+                statusMsg.innerHTML = "✨ <strong>¡TU TURNO!</strong> Introduce un número.";
+                statusMsg.style.color = "var(--primary)";
+                statusMsg.style.transform = "scale(1.1)";
+                
+                guessInput.disabled = false;
+                btnGuess.disabled = false;
+                guessInput.focus();
+                
+                document.body.style.borderColor = "var(--primary)";
+            } else {
+                statusMsg.textContent = "⏳ Esperando al rival...";
+                statusMsg.style.color = "var(--text-muted)";
+                statusMsg.style.transform = "scale(1)";
+                
+                guessInput.disabled = true;
+                btnGuess.disabled = true;
+                
+                document.body.style.borderColor = "transparent";
+            }
+        }
+
+        function addSystemMessage(html) {
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg system-msg';
+            msg.style.width = '100%';
+            msg.style.textAlign = 'center';
+            msg.style.color = '#fbbf24';
+            msg.style.fontSize = '0.9rem';
+            msg.style.marginBottom = '0.5rem';
+            msg.innerHTML = html;
+            gameLog.appendChild(msg);
+        }
+
+        function sendGuess() {
+            const val = guessInput.value;
+            if (val && myTurn) {
+                socket.emit('make_guess', { room_code: roomCode, guess: val });
+                guessInput.value = '';
+            }
+        }
+
+        // Actions
+        btnGuess.addEventListener('click', sendGuess);
+        guessInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendGuess(); });
+
+        // Prevent FOUC
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+    </script>
+</body>
 </html>
