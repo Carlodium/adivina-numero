@@ -58,6 +58,9 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+    
+    # Commit table creation immediately to ensure they exist before migrations run
+    conn.commit()
 
     # Migración: Añadir columna 'device' si no existe
     try:
