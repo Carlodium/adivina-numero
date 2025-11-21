@@ -7,75 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='versus.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-</head>
-<body>
-    <div class="stars"></div>
-    <div class="stars2"></div>
-
-    <div class="container">
-        <a href="/" class="back-link">⬅️ Volver al Hub</a>
-        
-        <div class="game-card lobby-container">
-            <h1>⚔️ Modo Versus</h1>
-            
-            <!-- Initial Menu -->
-            <div id="menu-section">
-                <button id="btn-create" class="play-btn">Crear Sala</button>
-                <div style="margin: 1rem 0; font-weight: bold;">- O -</div>
-                <div class="input-group">
-                    <input type="text" id="room-code-input" placeholder="Código de Sala" maxlength="4" style="text-transform: uppercase; text-align: center; letter-spacing: 5px;">
-                </div>
-                <button id="btn-join" class="play-btn secondary">Unirse</button>
-            </div>
-
-            <!-- Waiting Room (Hidden initially) -->
-            <div id="lobby-section" class="hidden" style="width: 100%;">
-                <div class="room-info">
-                    <h3>Sala: <span id="display-room-code" style="color: var(--primary); font-size: 2rem; letter-spacing: 3px;">????</span></h3>
-                    <p>Esperando jugadores...</p>
-                </div>
-
-                <!-- Avatars Stage -->
-                <div class="avatar-stage">
-                    <!-- P1 (Host) -->
-                    <div class="avatar-wrapper" id="p1-wrapper">
-                        <div class="avatar-cube" id="p1-avatar">
-                            <div class="avatar-eyes">
-                                <div class="eye"></div><div class="eye"></div>
-                            </div>
-                        </div>
-                        <div class="avatar-name" id="p1-name">Esperando...</div>
-                    </div>
-
-                    <!-- P2 (Guest) -->
-                    <div class="avatar-wrapper" id="p2-wrapper" style="opacity: 0.5;">
-                        <div class="avatar-cube p2" id="p2-avatar">
-                            <div class="avatar-eyes">
-                                <div class="eye"></div><div class="eye"></div>
-                            </div>
-                        </div>
-                        <div class="avatar-name" id="p2-name">Esperando...</div>
-                    </div>
-                </div>
-
-                <!-- Chat -->
-                <div class="lobby-chat">
-                    <div class="chat-messages" id="chat-box"></div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chat-input" placeholder="Escribe algo..." maxlength="50">
-                        <button id="btn-send" class="play-btn small">Enviar</button>
-                    </div>
-                </div>
-                <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">💡 Pulsa ESPACIO para saltar</p>
-
-                <button id="btn-start" class="play-btn hidden" style="margin-top: 2rem;">¡EMPEZAR PARTIDA!</button>
-            </div>
-        </div>
-    </div>
-
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
-        const socket = io();
+        // Initialize Socket.IO with debug logs
+        const socket = io({
+            reconnectionAttempts: 5,
+            timeout: 10000,
+            transports: ['websocket', 'polling']
+        });
+
         let myRoomCode = null;
         let myRole = null; // 'host' or 'guest'
 
@@ -89,21 +29,50 @@
         const btnStart = document.getElementById('btn-start');
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
+        const btnCreate = document.getElementById('btn-create');
+        const btnJoin = document.getElementById('btn-join');
+
+        // --- Connection Debugging ---
+        socket.on('connect', () => {
+            console.log('✅ Conectado al servidor SocketIO:', socket.id);
+        });
+
+        socket.on('connect_error', (err) => {
+            console.error('❌ Error de conexión:', err);
+            alert('Error conectando al servidor de juego. Revisa tu conexión.');
+            btnCreate.textContent = "Crear Sala";
+            btnCreate.disabled = false;
+            btnJoin.textContent = "Unirse";
+            btnJoin.disabled = false;
+        });
 
         // --- Menu Actions ---
-        document.getElementById('btn-create').addEventListener('click', () => {
+        btnCreate.addEventListener('click', () => {
+            console.log('🖱️ Click en Crear Sala');
+            btnCreate.textContent = "Creando...";
+            btnCreate.disabled = true;
             const username = "{{ session.get('username', 'Invitado') }}";
             socket.emit('create_room', { username: username });
         });
 
-        document.getElementById('btn-join').addEventListener('click', () => {
+        btnJoin.addEventListener('click', () => {
+            console.log('🖱️ Click en Unirse');
             const code = document.getElementById('room-code-input').value;
+            if (!code) {
+                alert("Por favor, introduce un código de sala.");
+                return;
+            }
+            
+            btnJoin.textContent = "Uniéndose...";
+            btnJoin.disabled = true;
+            
             const username = "{{ session.get('username', 'Invitado') }}";
-            if(code) socket.emit('join_room', { room_code: code, username: username });
+            socket.emit('join_room', { room_code: code, username: username });
         });
 
         // --- Socket Events ---
         socket.on('room_created', (data) => {
+            console.log('🏠 Sala creada:', data);
             myRoomCode = data.room_code;
             myRole = 'host';
             showLobby();
@@ -111,9 +80,9 @@
         });
 
         socket.on('player_joined', (data) => {
-            // Update UI with players
+            console.log('👤 Jugador unido:', data);
             const players = data.players;
-            myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase(); // Ensure code is set for joiner
+            myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase();
             
             showLobby();
             
@@ -133,7 +102,13 @@
         });
 
         socket.on('error', (data) => {
+            console.error('⚠️ Error del servidor:', data);
             alert(data.message);
+            // Reset buttons
+            btnCreate.textContent = "Crear Sala";
+            btnCreate.disabled = false;
+            btnJoin.textContent = "Unirse";
+            btnJoin.disabled = false;
         });
 
         socket.on('chat_message', (data) => {
@@ -145,8 +120,6 @@
         });
 
         socket.on('avatar_jump', (data) => {
-            // Determine which avatar jumped based on SID logic (simplified here for demo)
-            // Ideally we map SID to P1/P2. For now, if it's not me, it's the other one.
             if (data.sid !== socket.id) {
                 const otherAvatar = myRole === 'host' ? document.getElementById('p2-avatar') : document.getElementById('p1-avatar');
                 jumpAvatar(otherAvatar);
@@ -154,6 +127,7 @@
         });
 
         socket.on('game_started', (data) => {
+            console.log('🎮 Juego iniciado');
             window.location.href = `/versus/${myRoomCode}`;
         });
 
@@ -200,6 +174,11 @@
         // Prevent FOUC
         document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('loaded');
+        });
+
+        // Clean disconnect on back
+        window.addEventListener('beforeunload', () => {
+            socket.disconnect();
         });
     </script>
 </body>
