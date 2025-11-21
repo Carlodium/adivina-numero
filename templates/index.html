@@ -34,10 +34,16 @@
     <!-- Confeti Canvas -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <!-- Theme Toggle -->
-    <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema">
-        <span class="icon">☀️</span>
-    </button>
+    <!-- Theme Toggle Switch -->
+    <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider round">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </div>
+        </label>
+    </div>
 
     <div class="container">
       <h1>🎲 Adivina el Número</h1>
@@ -142,21 +148,26 @@
 
     <script>
         // --- 1. TEMA OSCURO/CLARO ---
-        const themeToggle = document.getElementById('theme-toggle');
+        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
         const body = document.body;
-        const icon = themeToggle.querySelector('.icon');
 
         // Cargar tema guardado
-        if (localStorage.getItem('theme') === 'light') {
-            body.classList.add('light-mode');
-            icon.textContent = '🌙';
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme) {
+            if (currentTheme === 'light') {
+                body.classList.add('light-mode');
+                toggleSwitch.checked = true; // Checkbox activado para modo claro
+            }
         }
 
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('light-mode');
-            const isLight = body.classList.contains('light-mode');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            icon.textContent = isLight ? '🌙' : '☀️';
+        toggleSwitch.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                body.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light-mode');
+                localStorage.setItem('theme', 'dark');
+            }
         });
 
         // --- 2. LÓGICA DEL JUEGO ---

@@ -35,9 +35,7 @@ body.light-mode {
 
 body {
   font-family: "Outfit", sans-serif;
-  background: linear-gradient(-45deg, var(--gradient-start), var(--gradient-end), var(--bg-color));
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
+  background: var(--bg-color);
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
@@ -45,12 +43,82 @@ body {
   align-items: center;
   margin: 0;
   transition: background 0.5s ease, color 0.5s ease;
+  overflow-x: hidden; /* Evitar scroll horizontal por animaciones */
+  position: relative;
 }
 
-@keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* Fondo Marea (Gradiente Animado) */
+body::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, transparent 0%, var(--bg-color) 70%),
+              linear-gradient(45deg, var(--gradient-start), var(--gradient-end), var(--primary), var(--accent));
+  background-size: 400% 400%;
+  animation: tideFlow 20s ease-in-out infinite alternate;
+  z-index: -2;
+  opacity: 0.8;
+}
+
+@keyframes tideFlow {
+  0% { transform: translate(0, 0) rotate(0deg); background-position: 0% 50%; }
+  50% { transform: translate(-2%, 2%) rotate(1deg); background-position: 100% 50%; }
+  100% { transform: translate(0, 0) rotate(0deg); background-position: 0% 50%; }
+}
+
+/* Estrellas (Solo Modo Oscuro) */
+body:not(.light-mode)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: twinkle 4s infinite;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+/* Nubes/Partículas (Solo Modo Claro) */
+body.light-mode::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.6) 0%, transparent 40%);
+  background-size: 100% 100%;
+  animation: floatClouds 30s linear infinite;
+  z-index: -1;
+  opacity: 0.5;
+  filter: blur(20px);
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 0.8; transform: translateY(-2px); }
+  100% { opacity: 0.4; transform: translateY(0); }
+}
+
+@keyframes floatClouds {
+  0% { transform: translateX(-10%) translateY(0); }
+  50% { transform: translateX(10%) translateY(-5%); }
+  100% { transform: translateX(-10%) translateY(0); }
 }
 
 .container {
@@ -60,31 +128,100 @@ body {
   text-align: center;
 }
 
-/* Theme Toggle */
-.theme-toggle {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 0.5rem;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.5rem;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    z-index: 10;
+/* Theme Toggle Switch */
+.theme-switch-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  z-index: 100;
 }
 
-.theme-toggle:hover {
-    transform: scale(1.1);
-    background-color: var(--input-bg);
+.theme-switch {
+  display: inline-block;
+  height: 34px;
+  position: relative;
+  width: 60px;
+}
+
+.theme-switch input {
+  display: none;
+}
+
+.slider {
+  background-color: #1e293b; /* Dark bg */
+  bottom: 0;
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: .4s;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+}
+
+.slider:before {
+  background-color: #fff;
+  bottom: 4px;
+  content: "";
+  height: 24px;
+  left: 4px;
+  position: absolute;
+  transition: .4s;
+  width: 24px;
+  z-index: 2;
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Iconos dentro del slider */
+.icon-sun, .icon-moon {
+    font-size: 14px;
+    z-index: 1;
+    line-height: 1;
+    user-select: none;
+}
+
+.icon-sun {
+    margin-left: 28px; /* Posición cuando está oscuro (oculto por la bola) */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.icon-moon {
+    margin-left: 4px;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+/* Estado Activado (Modo Claro) */
+input:checked + .slider {
+  background-color: #60a5fa; /* Azul cielo */
+  border-color: #60a5fa;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+input:checked + .slider .icon-sun {
+    opacity: 1;
+    margin-left: 4px; /* Ajuste visual */
+}
+
+input:checked + .slider .icon-moon {
+    opacity: 0;
 }
 
 /* Streak Counter */
