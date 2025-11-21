@@ -173,10 +173,12 @@ def register():
         conn.commit()
         
         # Auto login logic
-        # For simplicity in this step, we just return success and let frontend handle login or ask user to login
         return {'success': True}
-    except Exception as e:
+    except (sqlite3.IntegrityError, psycopg2.IntegrityError):
         return {'success': False, 'message': 'El usuario ya existe'}
+    except Exception as e:
+        print(f"Error en registro: {e}")
+        return {'success': False, 'message': f'Error del servidor: {str(e)}'}
     finally:
         conn.close()
 
