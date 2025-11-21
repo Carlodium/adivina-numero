@@ -151,6 +151,14 @@ def auth_page():
         return redirect(url_for('index'))
     return render_template('auth.html')
 
+@app.route('/init-db')
+def init_db_route():
+    try:
+        init_db()
+        return "Base de datos inicializada correctamente (Tablas users y scores revisadas)."
+    except Exception as e:
+        return f"Error inicializando BD: {str(e)}"
+
 # --- AUTH ROUTES ---
 @app.route('/register', methods=['POST'])
 def register():
