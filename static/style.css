@@ -829,3 +829,55 @@ body.light-mode .btn-logout {
     color: #dc2626;
     border-color: #dc2626;
 }
+
+/* --- MATRIX MODE (KONAMI CODE EASTER EGG) --- */
+body.matrix-mode {
+    --bg-color: #0d0208;
+    --card-bg: rgba(0, 20, 10, 0.9);
+    --text-main: #00ff41;
+    --text-muted: #00cc33;
+    --primary: #00ff41;
+    --primary-hover: #00cc33;
+    --accent: #00ff00;
+    --border-color: rgba(0, 255, 65, 0.2);
+    --input-bg: rgba(0, 20, 10, 0.5);
+}
+
+body.matrix-mode h1,
+body.matrix-mode h2 {
+    text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+}
+
+body.matrix-mode .game-card-preview,
+body.matrix-mode .game-card,
+body.matrix-mode .ranking-card {
+    border-color: rgba(0, 255, 65, 0.3);
+    box-shadow: 0 10px 30px -10px rgba(0, 255, 65, 0.3);
+}
+
+body.matrix-mode .game-card-preview:hover {
+    box-shadow: 0 20px 40px -10px rgba(0, 255, 65, 0.6);
+}
+
+body.matrix-mode button,
+body.matrix-mode .btn-auth {
+    background: linear-gradient(135deg, #00ff41, #00cc33);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.4);
+}
+
+body.matrix-mode button:hover,
+body.matrix-mode .btn-auth:hover {
+    box-shadow: 0 6px 20px rgba(0, 255, 65, 0.6);
+}
+
+/* Fade animations for notifications */
+@keyframes fadeOut {
+  from { 
+    opacity: 1; 
+  }
+  to { 
+    opacity: 0; 
+    transform: translate(-50%, -60%);
+  }
+}
