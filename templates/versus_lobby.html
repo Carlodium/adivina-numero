@@ -350,26 +350,34 @@
         });
 
         // Escuchar cuando un jugador se pone listo
-       // Escuchar cuando un jugador se pone listo
         socket.on('player_ready_update', (data) => {
             console.log('Player ready update:', data);
             
-            // Determinar qué avatar actualizar
-            // Si el SID coincide con el host (o P1), actualizamos P1
-            // Pero necesitamos saber quién es P1 y quién P2.
-            // Usamos la lógica de setupLobby:
-            // Si soy host, P1 soy yo. Si soy guest, P1 es el otro.
+            // Identificar avatar basado en si soy yo o el rival
+            let targetAvatarId = '';
             
-            let targetAvatar = null;
-            
-            // Simplificación: Si el SID es el mío, actualizo mi avatar.
-            // Si no, actualizo el del oponente.
             if (data.sid === mySid) {
-                targetAvatar = myRole === 'host' ? document.getElementById('p1-avatar') : document.getElementById('p2-avatar');
+                // Si soy yo, siempre soy el avatar de la izquierda (P1 visualmente) si soy host,
+                // o el de la derecha (P2 visualmente) si soy guest?
+                // Espera, la UI siempre muestra P1 a la izquierda y P2 a la derecha.
+                // Si soy Host: Yo soy P1 (izq), Rival es P2 (der).
+                // Si soy Guest: Yo soy P2 (der), Rival es P1 (izq).
+                
+                if (myRole === 'host') {
+                    targetAvatarId = 'p1-avatar';
+                } else {
+                    targetAvatarId = 'p2-avatar';
+                }
             } else {
-                targetAvatar = myRole === 'host' ? document.getElementById('p2-avatar') : document.getElementById('p1-avatar');
+                // Es el otro jugador
+                if (myRole === 'host') {
+                    targetAvatarId = 'p2-avatar'; // El otro es guest (der)
+                } else {
+                    targetAvatarId = 'p1-avatar'; // El otro es host (izq)
+                }
             }
             
+            const targetAvatar = document.getElementById(targetAvatarId);
             if (targetAvatar) {
                 if (data.ready) {
                     targetAvatar.classList.add('ready-aura');
@@ -413,38 +421,55 @@
             updateAuthUI(true);
         });
 
-        socket.on('player_joined', (data) => {
+        function handleLobbyUpdate(data) {
             const players = data.players;
-            const playerNames = data.player_names || {};
-            myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase();
-            setupLobby();
-            updateAuthUI(true);
+            
+            // Update my role (in case I was promoted to host)
+            const myPlayer = players.find(p => p.sid === mySid);
+            if (myPlayer) {
+                myRole = myPlayer.role;
+            }
+            
+            setupLobby(); // Refresh buttons based on new role
             
             // Update UI based on players
             let hostFound = false;
             let guestFound = false;
             
-            // Reset
+            // Reset P2 display first
             p2Container.style.opacity = '0.5';
             p2Name.textContent = 'Esperando...';
-            lobbyStatus.textContent = "Esperando jugadores...";
+            const p2Avatar = document.getElementById('p2-avatar');
+            if(p2Avatar) p2Avatar.classList.remove('ready-aura');
             
-            players.forEach(sid => {
-                const name = playerNames[sid] || 'Jugador';
-                if (!hostFound) {
-                    p1Name.textContent = name;
+            players.forEach(p => {
+                if (p.role === 'host') {
                     hostFound = true;
+                    p1Name.textContent = p.username;
                 } else {
-                    p2Name.textContent = name;
-                    p2Container.style.opacity = '1';
                     guestFound = true;
+                    p2Container.style.opacity = '1';
+                    p2Name.textContent = p.username;
                 }
             });
-
+            
             if (hostFound && guestFound) {
-                lobbyStatus.textContent = "¡Sala llena! Confirmad que estáis listos.";
-                lobbyStatus.style.color = "var(--primary)";
+                lobbyStatus.textContent = "¡Sala llena! Esperando a que ambos estén listos...";
+                if (myRole === 'host') btnStart.disabled = false;
+            } else {
+                lobbyStatus.textContent = "Esperando jugadores...";
+                btnStart.disabled = true;
             }
+        }
+
+        socket.on('lobby_update', (data) => {
+            handleLobbyUpdate(data);
+        });
+
+        socket.on('player_joined', (data) => {
+            myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase();
+            updateAuthUI(true);
+            handleLobbyUpdate(data);
         });
 
         socket.on('player_ready_update', (data) => {

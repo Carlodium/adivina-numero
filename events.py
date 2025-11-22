@@ -261,41 +261,71 @@ def register_events(socketio):
 
     @socketio.on('disconnect')
     def handle_disconnect():
-        # Find which room this player was in
         for room_code, room in list(rooms.items()):
             if request.sid in room['players']:
-                username = room['players'][request.sid]['username']
-                
-                # Notify other players
-                emit('player_disconnected', {
-                    'username': username,
-                    'sid': request.sid
-                }, to=room_code, include_self=False)
+                player = room['players'][request.sid]
+                username = player['username']
+                role = player['role']
                 
                 # Remove player from room
                 del room['players'][request.sid]
                 
-                # If room is empty, delete it ONLY if status is NOT 'playing'
+                # If room is empty
                 if len(room['players']) == 0:
+                    # Delete room ONLY if not playing
                     if room.get('status') != 'playing':
                         del rooms[room_code]
                         print(f"Room {room_code} deleted (empty)")
                     else:
-                        print(f"Room {room_code} kept alive (playing) despite empty")
+                        print(f"Room {room_code} kept alive (playing)")
                 else:
-                    print(f"{username} disconnected from room {room_code}")
+                    # Room not empty: Promote new host if needed
+                    if role == 'host':
+                        # Get the next available player SID
+                        new_host_sid = next(iter(room['players']))
+                        room['players'][new_host_sid]['role'] = 'host'
+                        print(f"New host in room {room_code}: {room['players'][new_host_sid]['username']}")
+                    
+                    # Notify remaining players with FULL update
+                    players_list = [{'sid': sid, 'username': p['username'], 'role': p['role']} for sid, p in room['players'].items()]
+                    player_names = {sid: p['username'] for sid, p in room['players'].items()}
+                    
+                    # Send lobby_update to refresh UI for everyone
+                    emit('lobby_update', {
+                        'players': players_list,
+                        'player_names': player_names
+                    }, to=room_code)
+                    
+                    emit('player_disconnected', {'username': username}, to=room_code)
                 break
 
     @socketio.on('start_game')
     def handle_start_game(data):
         room_code = data.get('room_code')
         if room_code in rooms:
-            rooms[room_code]['status'] = 'playing'
-            # Initialize game state if needed (e.g. random number)
-            target = random.randint(1, 100)
-            rooms[room_code]['target'] = target
-            rooms[room_code]['guesses'] = {} # sid -> guess
-            rooms[room_code]['round'] = 1
+            room = rooms[room_code]
+            room['status'] = 'playing'
             
-            emit('game_started', {'room_code': room_code}, to=room_code)
-            print(f"Game started in room {room_code} (Target: {target})")
+            # Initialize game state
+            target = random.randint(1, 100)
+            room['target'] = target
+            room['guesses'] = {} 
+            room['round'] = 1
+            
+            # Determine first turn randomly
+            players_sids = list(room['players'].keys())
+            first_turn = random.choice(players_sids)
+            room['turn'] = first_turn
+            
+            # Prepare data for client
+            player_names = {sid: p['username'] for sid, p in room['players'].items()}
+            players_list = [{'sid': sid, 'username': p['username']} for sid, p in room['players'].items()]
+            
+            emit('game_started', {
+                'room_code': room_code,
+                'first_turn': first_turn,
+                'player_names': player_names,
+                'players': players_list
+            }, to=room_code)
+            
+            print(f"Game started in room {room_code} (Target: {target}, Turn: {player_names[first_turn]})")
