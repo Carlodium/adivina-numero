@@ -131,6 +131,15 @@
              socket.emit('join_room', { room_code: roomCode, username: clientUsername });
         });
 
+        socket.on('connect_error', (err) => {
+            console.error('❌ Connection Error:', err);
+            updateStatus('Error de conexión: ' + err.message);
+        });
+        socket.on('error', (data) => {
+            console.error('❌ Socket Error:', data);
+            updateStatus('Error del servidor: ' + (data.message || JSON.stringify(data)));
+        });
+
         socket.on('player_joined', (data) => {
             console.log('👥 Player Update:', data);
             updatePlayerNames(data);

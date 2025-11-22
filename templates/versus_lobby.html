@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lobby Versus - Carlodium Arcade</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='game.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='versus.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
@@ -339,10 +340,33 @@
         });
 
         // Escuchar cuando un jugador se pone listo
+       // Escuchar cuando un jugador se pone listo
         socket.on('player_ready_update', (data) => {
             console.log('Player ready update:', data);
-        // Aquí deberías actualizar la UI para mostrar el estado "listo"
-            // Por ahora solo lo logueamos para ver si funciona
+            
+            // Determinar qué avatar actualizar
+            // Si el SID coincide con el host (o P1), actualizamos P1
+            // Pero necesitamos saber quién es P1 y quién P2.
+            // Usamos la lógica de setupLobby:
+            // Si soy host, P1 soy yo. Si soy guest, P1 es el otro.
+            
+            let targetAvatar = null;
+            
+            // Simplificación: Si el SID es el mío, actualizo mi avatar.
+            // Si no, actualizo el del oponente.
+            if (data.sid === mySid) {
+                targetAvatar = myRole === 'host' ? document.getElementById('p1-avatar') : document.getElementById('p2-avatar');
+            } else {
+                targetAvatar = myRole === 'host' ? document.getElementById('p2-avatar') : document.getElementById('p1-avatar');
+            }
+            
+            if (targetAvatar) {
+                if (data.ready) {
+                    targetAvatar.classList.add('ready-aura');
+                } else {
+                    targetAvatar.classList.remove('ready-aura');
+                }
+            }
         });
         // Escuchar cuando un jugador se desconecta
         socket.on('player_disconnected', (data) => {
