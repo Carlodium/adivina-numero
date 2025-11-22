@@ -192,11 +192,12 @@
     z-index: 50;
 }
 
-/* --- AVATAR EYES (NEW STRUCTURE) --- */
+/* --- AVATAR EYES (HORIZONTAL) --- */
 .eyes {
     display: flex;
-    gap: 24px;
-    margin-bottom: 5px;
+    flex-direction: row; /* HORIZONTAL! */
+    gap: 20px;
+    margin-bottom: 8px;
     z-index: 2;
 }
 
@@ -257,6 +258,14 @@
     transform: rotate(180deg); /* Flip to make it ^^ */
 }
 .face.happy .pupil { display: none; }
+
+/* Extra blush when happy */
+.face.happy::before,
+.face.happy::after {
+    background: rgba(255, 100, 150, 0.8);
+    width: 22px;
+    height: 12px;
+}
 
 /* Dizzy Eyes (Spirals) */
 .face.dizzy .eye {
