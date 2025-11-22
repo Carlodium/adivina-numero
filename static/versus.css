@@ -1,3 +1,29 @@
+/* --- VERSUS LOBBY LAYOUT --- */
+.lobby-wrapper {
+    max-width: 1200px; /* Wider for sidebar */
+}
+
+.lobby-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 1.5rem;
+    width: 100%;
+    height: 600px;
+}
+
+.stage-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.chat-card {
+    display: flex;
+    flex-direction: column;
     background: rgba(0, 0, 0, 0.4);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -6,6 +32,8 @@
 .room-header {
     text-align: center;
     margin-bottom: 1rem;
+    position: relative;
+    width: 100%;
 }
 
 #display-room-code {
@@ -52,22 +80,6 @@
     font-size: 1.2rem;
 }
 
-.ready-badge {
-    background: #4ade80;
-    color: #000;
-    padding: 0.2rem 0.5rem;
-    border-radius: 5px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    margin-top: 0.5rem;
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes popIn {
-    from { transform: scale(0); }
-    to { transform: scale(1); }
-}
-
 .vs-divider {
     font-size: 3rem;
     font-weight: 900;
@@ -77,23 +89,29 @@
 
 /* --- AVATAR CUBE --- */
 .avatar-cube {
-    width: 120px; /* Increased from 80px */
+    width: 120px;
     height: 120px;
-    background: linear-gradient(135deg, #fbbf24, #d97706); /* Warmer yellow/orange */
-    border-radius: 35px; /* Much rounder (Squircle) */
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    border-radius: 35px;
     box-shadow: 
         0 15px 35px rgba(251, 191, 36, 0.3),
-        inset 0 -10px 20px rgba(0,0,0,0.1); /* Inner depth */
+        inset 0 -10px 20px rgba(0,0,0,0.1);
     position: relative;
     transition: transform 0.1s;
     cursor: pointer;
 }
 
 .avatar-cube.p2 {
-    background: linear-gradient(135deg, #f87171, #dc2626); /* Softer red */
+    background: linear-gradient(135deg, #f87171, #dc2626);
     box-shadow: 
         0 15px 35px rgba(239, 68, 68, 0.3),
         inset 0 -10px 20px rgba(0,0,0,0.1);
+}
+
+/* Ready Aura */
+.avatar-cube.ready-aura {
+    box-shadow: 0 0 0 5px #4ade80, 0 0 50px rgba(74, 222, 128, 0.6);
+    z-index: 10;
 }
 
 .face {
@@ -101,7 +119,7 @@
     height: 100%;
     position: relative;
     display: flex;
-    flex-direction: column; /* Stack eyes and mouth/blush */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
@@ -114,7 +132,7 @@
     height: 8px;
     background: rgba(255, 100, 100, 0.4);
     border-radius: 50%;
-    top: 65px; /* Below eyes */
+    top: 65px;
     z-index: 1;
 }
 .face::before { left: 25px; }
@@ -122,21 +140,21 @@
 
 .eyes {
     display: flex;
-    gap: 24px; /* Further apart for cute wide look? Or closer? Let's try balanced */
+    gap: 24px;
     margin-bottom: 5px;
     z-index: 2;
 }
 
 .eye {
-    width: 22px; /* Much bigger eyes */
+    width: 22px;
     height: 22px;
-    background: #1e293b; /* Dark blue-black instead of pure black */
+    background: #1e293b;
     border-radius: 50%;
     position: relative;
     transition: height 0.1s, border-radius 0.1s;
 }
 
-/* Eye Tracking Pupil Effect (Pseudo-element) - Sparkle */
+/* Eye Tracking Pupil Effect */
 .eye::after {
     content: '';
     position: absolute;
@@ -155,18 +173,18 @@
 .eye.blink {
     height: 2px;
     border-radius: 0;
-    margin-top: 10px; /* Lower slightly */
+    margin-top: 10px;
 }
 
-/* Happy Eyes - Fixed Curve */
+/* Happy Eyes */
 .face.happy .eye {
     height: 12px;
     width: 22px;
     border-radius: 0;
     background: transparent;
-    border-top: 4px solid #1e293b; /* Thicker line */
+    border-top: 4px solid #1e293b;
     margin-top: 8px;
-    transform: none !important; /* Force no rotation */
+    transform: none !important;
 }
 .face.happy .eye::after { display: none; }
 
@@ -178,7 +196,7 @@
     width: 22px;
     height: 22px;
     position: relative;
-    transform: none !important; /* Reset rotation so animation works cleanly */
+    transform: none !important;
 }
 .face.dizzy .eye::before {
     content: '';
@@ -186,7 +204,6 @@
     top: 50%; left: 50%;
     width: 100%; height: 2px;
     background: #1e293b;
-    /* Start centered */
     transform-origin: center;
     animation: spin 1s linear infinite;
 }
@@ -199,7 +216,7 @@
 
 /* Jump & Charge */
 .avatar-cube.charging {
-    transform: scale(1.2, 0.7) translateY(20px); /* Squash */
+    transform: scale(1.2, 0.7) translateY(20px);
     filter: brightness(1.2);
 }
 
@@ -282,28 +299,48 @@
 }
 
 .ready-btn {
-    background: #3b82f6; /* Blue */
+    background: #3b82f6;
     width: 100%;
 }
 
 .ready-btn.secondary {
-    background: #ef4444; /* Red for cancel */
+    background: #ef4444;
 }
 
-.start-btn {
-    width: 100%;
-    margin-top: 1rem;
-    background: #10b981; /* Green */
+/* Countdown Badge (Top Right) */
+.countdown-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2px solid var(--primary);
+    border-radius: 1rem;
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s ease;
+    z-index: 50;
 }
 
-.start-btn.pulse {
-    animation: pulse-green 2s infinite;
+.countdown-number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #fbbf24;
+    font-family: monospace;
 }
 
-@keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+.countdown-text {
+    font-size: 0.9rem;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 /* Responsive */
