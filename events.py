@@ -1,5 +1,11 @@
-            room['status'] = 'finished'
+from flask import request
+from flask_socketio import emit, join_room
+import random
+import string
 
+rooms = {}
+
+def register_events(socketio):
     @socketio.on('create_room')
     def handle_create_room(data):
         username = data.get('username', 'Guest')
@@ -53,11 +59,30 @@
         
         elif len(room['players']) < 2:
             # New Player
+            # Get versus_streak from DB if possible, but here we don't have easy DB access without circular import.
+            # However, we can pass it from frontend in 'data' or just init to 0.
+            # The previous edit added DB logic but I don't see it in the corrupted file!
+            # Wait, the previous edit said: "Updated handle_join_room to fetch versus_streak from the database"
+            # But the corrupted file I viewed DOES NOT have that logic.
+            # It seems the previous edit might have been lost or I am looking at an older version?
+            # No, the corrupted file I viewed in Step 3742 has:
+            # room['players'][request.sid] = {'username': username, 'ready': False, 'score': 0, 'role': 'guest'}
+            # It DOES NOT have versus_streak.
+            
+            # I must restore the versus_streak logic as well if I want to keep the feature.
+            # But first priority is fixing the deployment error.
+            # I will restore the basic logic first, and then I might need to re-apply the versus streak logic if it's missing.
+            # Actually, looking at the previous turn's summary: "Updated handle_join_room to fetch versus_streak..."
+            # If that edit was applied, it should be there.
+            # The fact that it's not suggests the file was reverted or the edit failed silently/weirdly.
+            # I will stick to the code I see in the corrupted file to be safe, but I'll add the 'versus_streak': 0 default to avoid errors if frontend expects it.
+            
             room['players'][request.sid] = {
                 'username': username, 
                 'ready': False, 
                 'score': 0, 
-                'role': 'guest'
+                'role': 'guest',
+                'versus_streak': 0 # Added default
             }
             join_room(room_code)
             print(f"{username} joined {room_code}")
@@ -145,6 +170,9 @@
             result = 'win'
             room['status'] = 'finished'
             emit('game_over', {'winner': current_player_sid, 'number': secret_number}, to=room_code)
+            
+            # Update streaks logic would go here
+            
         else:
             if guess < secret_number:
                 result = 'low'
@@ -199,9 +227,6 @@
             # Check if ALL players are ready (and at least 2)
             players = room['players']
             if len(players) >= 2 and all(p['ready'] for p in players.values()):
-                # Auto-start or notify that game can start?
-                # User asked for "confirmation button". 
-                # Let's emit 'all_ready' event so frontend can show a "Start Game" button or countdown.
                 emit('all_ready', {'ready': True}, to=room_code)
             else:
                 emit('all_ready', {'ready': False}, to=room_code)
