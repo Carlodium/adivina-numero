@@ -338,6 +338,18 @@
              mySid = socket.id;
         });
 
+        // Escuchar cuando un jugador se pone listo
+        socket.on('player_ready_update', (data) => {
+            console.log('Player ready update:', data);
+        // Aquí deberías actualizar la UI para mostrar el estado "listo"
+            // Por ahora solo lo logueamos para ver si funciona
+        });
+        // Escuchar cuando un jugador se desconecta
+        socket.on('player_disconnected', (data) => {
+            alert(`${data.username} se ha desconectado`);
+            // Opcional: volver al menú o mostrar mensaje
+        });
+
         // Create/Join
         document.getElementById('btn-create').addEventListener('click', () => {
             const username = "{{ session.get('username', 'Invitado') }}";
@@ -464,10 +476,8 @@
             const msg = document.createElement('div');
             msg.className = 'chat-msg';
             
-            // Determinar color según el SID del jugador
-            // Si es mi SID, soy P1 (host), sino P2
-            const isMe = data.sid === mySid;
-            const playerColor = isMe ? '#ff9eb3' : '#7dd3fc'; // Rosa para mí, Cyan para el otro
+            // Usar el color que envía el servidor
+            const playerColor = data.color || '#ffffff'; // Blanco por defecto
             
             msg.innerHTML = `<strong style="color: ${playerColor}">${data.username}:</strong> ${data.message}`;
             chatBox.appendChild(msg);

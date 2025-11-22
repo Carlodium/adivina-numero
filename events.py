@@ -231,13 +231,24 @@ def register_events(socketio):
             else:
                 emit('all_ready', {'ready': False}, to=room_code)
 
-    @socketio.on('chat_message')
+    @socketio.on('chat_message')    
     def handle_chat(data):
         room_code = data.get('room_code')
         message = data.get('message')
         if room_code in rooms:
-            username = rooms[room_code]['players'][request.sid]['username']
-            emit('chat_message', {'username': username, 'message': message}, to=room_code)
+            player = rooms[room_code]['players'][request.sid]
+            username = player['username']
+            
+            # Determinar color según rol (por ahora)
+            # En el futuro, esto vendrá de player['color'] o similar
+            player_color = '#ff9eb3' if player['role'] == 'host' else '#7dd3fc'
+            
+            emit('chat_message', {
+                'username': username, 
+                'message': message,
+                'sid': request.sid,
+                'color': player_color  # AÑADIR COLOR
+            }, to=room_code)
 
     @socketio.on('avatar_jump')
     def handle_jump(data):
@@ -247,3 +258,27 @@ def register_events(socketio):
         
         if room_code in rooms:
             emit('avatar_anim', {'sid': request.sid, 'type': action_type}, to=room_code, include_self=False)
+
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        # Find which room this player was in
+        for room_code, room in list(rooms.items()):
+            if request.sid in room['players']:
+                username = room['players'][request.sid]['username']
+                
+                # Notify other players
+                emit('player_disconnected', {
+                    'username': username,
+                    'sid': request.sid
+                }, to=room_code, include_self=False)
+                
+                # Remove player from room
+                del room['players'][request.sid]
+                
+                # If room is empty, delete it
+                if len(room['players']) == 0:
+                    del rooms[room_code]
+                    print(f"Room {room_code} deleted (empty)")
+                else:
+                    print(f"{username} disconnected from room {room_code}")
+                break

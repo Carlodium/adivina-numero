@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arena Versus - Carlodium Arcade</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='game.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='versus.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
@@ -21,6 +22,14 @@
                 </div>
             </div>
         </label>
+    </div>
+
+    <!-- Auth Status (Top Right) - Username only during game -->
+    <div class="game-auth-status">
+      {% if session.get('user_id') %}
+        <span class="username-display">👤 {{ session.get('username') }}</span>
+        <!-- NO logout button during game -->
+      {% endif %}
     </div>
 
     <!-- Dynamic Stars via stars.js -->
