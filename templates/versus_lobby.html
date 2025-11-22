@@ -135,35 +135,6 @@
         const stage = document.getElementById('avatar-stage');
         
         // Eye Tracking (Pupil Movement)
-        document.addEventListener('mousemove', (e) => {
-            const faces = document.querySelectorAll('.face');
-            
-            faces.forEach(face => {
-                if (face.classList.contains('dizzy') || face.classList.contains('happy')) return;
-
-                const eyes = face.querySelectorAll('.eye');
-                
-                eyes.forEach(eye => {
-                    const pupil = eye.querySelector('.pupil');
-                    if (!pupil) return;
-
-                    const rect = eye.getBoundingClientRect();
-                    const eyeCenterX = rect.left + (rect.width / 2);
-                    const eyeCenterY = rect.top + (rect.height / 2);
-                    
-                    // Check if mouse is hovering the avatar cube (parent)
-                    const cube = face.closest('.avatar-cube');
-                    if (cube) {
-                        const cubeRect = cube.getBoundingClientRect();
-                        if (
-                            e.clientX >= cubeRect.left && e.clientX <= cubeRect.right &&
-                            e.clientY >= cubeRect.top && e.clientY <= cubeRect.bottom
-                        ) {
-                            // Reset to center if hovering
-                            pupil.style.transform = 'translate(0, 0)';
-                            return;
-                        }
-                    }
                     
                     // Calculate vector from eye center to mouse
                     const dx = e.clientX - eyeCenterX;

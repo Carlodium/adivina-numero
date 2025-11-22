@@ -86,7 +86,8 @@ body::before {
     position: absolute;
     background: white;
     border-radius: 50%;
-    box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+    /* box-shadow removed for performance */
+    opacity: 0.8;
     animation: twinkle ease-in-out infinite alternate;
 }
 
