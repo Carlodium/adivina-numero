@@ -455,10 +455,10 @@
             
             if (hostFound && guestFound) {
                 lobbyStatus.textContent = "¡Sala llena! Esperando a que ambos estén listos...";
-                if (myRole === 'host') btnStart.disabled = false;
+                if (myRole === 'host' && btnStart) btnStart.disabled = false;
             } else {
                 lobbyStatus.textContent = "Esperando jugadores...";
-                btnStart.disabled = true;
+                if (btnStart) btnStart.disabled = true;
             }
         }
 

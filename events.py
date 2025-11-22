@@ -98,7 +98,7 @@ def register_events(socketio):
         player_names = {sid: p['username'] for sid, p in room['players'].items()}
         
         emit('player_joined', {
-            'players': list(room['players'].keys()),
+            'players': players_list,  # AHORA enviamos la lista de objetos, no solo keys
             'player_names': player_names
         }, to=room_code)
 
@@ -152,43 +152,38 @@ def register_events(socketio):
     @socketio.on('make_guess')
     def handle_guess(data):
         room_code = data.get('room_code')
-        guess = int(data.get('guess'))
+        guess = data.get('guess')
         
         if room_code not in rooms:
             return
             
         room = rooms[room_code]
-        secret_number = room['number']
-        current_player_sid = request.sid
-        
-        # Validate turn
-        if room['turn'] != current_player_sid:
+        if room['status'] != 'playing':
             return
-
-        result = ''
-        if guess == secret_number:
-            result = 'win'
+            
+        if room['turn'] != request.sid:
+            return # No es tu turno
+            
+        target = room['target']
+        room['guesses'][request.sid] = guess
+        
+        if guess == target:
             room['status'] = 'finished'
-            emit('game_over', {'winner': current_player_sid, 'number': secret_number}, to=room_code)
-            
-            # Update streaks logic would go here
-            
+            emit('game_over', {'winner': request.sid, 'number': target}, to=room_code)
         else:
-            if guess < secret_number:
-                result = 'low'
-            else:
-                result = 'high'
+            result = 'low' if guess < target else 'high'
             
-            # Switch turn
-            players = list(room['players'].keys())
-            # Find the other player
-            next_turn = [p for p in players if p != current_player_sid][0]
+            # Cambiar turno
+            players_sids = list(room['players'].keys())
+            current_idx = players_sids.index(request.sid)
+            next_idx = (current_idx + 1) % len(players_sids)
+            next_turn = players_sids[next_idx]
             room['turn'] = next_turn
             
             emit('turn_result', {
+                'player': request.sid,
                 'guess': guess,
                 'result': result,
-                'player': current_player_sid,
                 'next_turn': next_turn
             }, to=room_code)
 
