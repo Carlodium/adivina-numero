@@ -93,6 +93,16 @@ def init_db():
     except Exception:
         conn.rollback()
 
+    # Migración: Añadir columna 'versus_streak' a users si no existe
+    try:
+        if os.environ.get('DATABASE_URL'):
+            c.execute('ALTER TABLE users ADD COLUMN versus_streak INTEGER DEFAULT 0')
+        else:
+            c.execute('ALTER TABLE users ADD COLUMN versus_streak INTEGER DEFAULT 0')
+        conn.commit()
+    except Exception:
+        conn.rollback()
+
     conn.commit()
     conn.close()
 
