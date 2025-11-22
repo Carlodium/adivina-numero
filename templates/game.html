@@ -20,6 +20,7 @@
   <body>
     <!-- Confeti Canvas -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="{{ url_for('static', filename='stars.js') }}"></script>
 
     <!-- Theme Toggle Switch -->
     <div class="theme-switch-wrapper">
@@ -91,18 +92,6 @@
                       Guardar Puntuación
                     </button>
                 {% endif %}
-            </form>
-            <button id="restart-btn" class="restart-btn" style="margin-top: 1rem;">
-                Jugar de nuevo
-            </button>
-          </div>
-
-          <div class="stats">
-            <p>Intentos: <span id="intentos-count">0</span></p>
-          </div>
-        </div>
-
-        <div class="ranking-card">
           <h2>🏆 Top 5 Ranking</h2>
           
           <!-- Filtros de Ranking -->

@@ -10,10 +10,8 @@
 </head>
 <body>
     <!-- Background Animation (Shared) -->
-    <div class="stars"></div>
-    <div class="stars2"></div>
-    <div class="stars2"></div>
-    <div class="stars3"></div>
+    <!-- Background Animation (Shared) -->
+    <!-- Dynamic Stars via stars.js -->
 
     <!-- Theme Toggle Switch -->
     <div class="theme-switch-wrapper">
@@ -179,5 +177,6 @@
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="{{ url_for('static', filename='stars.js') }}"></script>
 </body>
 </html>

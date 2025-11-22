@@ -23,8 +23,7 @@
         </label>
     </div>
 
-    <div class="stars"></div>
-    <div class="stars2"></div>
+    <!-- Dynamic Stars via stars.js -->
 
     <div class="container lobby-wrapper">
         <div class="lobby-header-bar">
@@ -472,5 +471,6 @@
             }
         }
     </script>
+    <script src="{{ url_for('static', filename='stars.js') }}"></script>
 </body>
 </html>
