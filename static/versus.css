@@ -26,6 +26,8 @@
     flex-direction: column;
     background: rgba(0, 0, 0, 0.4);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
+    height: 100%; /* Ocupa toda la altura del grid */
+    overflow: hidden; /* Evita que crezca más allá */
 }
 
 /* --- HEADER --- */
@@ -325,10 +327,27 @@
 .chat-messages {
     flex-grow: 1;
     overflow-y: auto;
+    max-height: 450px; /* Límite de altura */
     padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    scroll-behavior: smooth; /* Scroll suave */
+}
+/* Scrollbar personalizada */
+.chat-messages::-webkit-scrollbar {
+    width: 8px;
+}
+.chat-messages::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #fcd34d;
 }
 
 .chat-input-area {
@@ -440,4 +459,10 @@
 @keyframes popIn {
     from { transform: scale(0.5); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
+}
+
+/* Chat player colors */
+.chat-msg strong {
+    font-weight: 700;
+    text-shadow: 0 0 10px currentColor;
 }
