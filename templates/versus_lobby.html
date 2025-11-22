@@ -23,6 +23,15 @@
         </label>
     </div>
 
+    <div class="game-auth-status">
+      {% if session.get('user_id') %}
+        <span class="username-display">👤 {{ session.get('username') }}</span>
+        <a href="/logout" class="btn-auth btn-logout" id="logout-link">Cerrar Sesión</a>
+      {% else %}
+        <a href="/auth?tab=login" class="btn-auth btn-login">Iniciar Sesión</a>
+        <a href="/auth?tab=register" class="btn-auth btn-register">Registrarse</a>
+      {% endif %}
+    </div>
     <!-- Dynamic Stars via stars.js -->
 
     <div class="container lobby-wrapper">
@@ -342,19 +351,28 @@
             socket.emit('join_room', { room_code: code, username: username });
         });
 
+        // Hide/show logout button based on room state
+        function updateAuthUI(inRoom) {
+            const logoutBtn = document.getElementById('logout-link');
+            if (logoutBtn) {
+                logoutBtn.style.display = inRoom ? 'none' : 'inline-block';
+            }
+        }
+        
         socket.on('room_created', (data) => {
             myRoomCode = data.room_code;
             myRole = 'host';
             setupLobby();
             p1Name.textContent = "{{ session.get('username', 'Invitado') }}";
+            updateAuthUI(true);
         });
 
         socket.on('player_joined', (data) => {
             const players = data.players;
             const playerNames = data.player_names || {};
             myRoomCode = myRoomCode || document.getElementById('room-code-input').value.toUpperCase();
-            
             setupLobby();
+            updateAuthUI(true);
             
             // Update UI based on players
             let hostFound = false;
@@ -445,11 +463,17 @@
         socket.on('chat_message', (data) => {
             const msg = document.createElement('div');
             msg.className = 'chat-msg';
-            msg.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+            
+            // Determinar color según el SID del jugador
+            // Si es mi SID, soy P1 (host), sino P2
+            const isMe = data.sid === mySid;
+            const playerColor = isMe ? '#ff9eb3' : '#7dd3fc'; // Rosa para mí, Cyan para el otro
+            
+            msg.innerHTML = `<strong style="color: ${playerColor}">${data.username}:</strong> ${data.message}`;
             chatBox.appendChild(msg);
             chatBox.scrollTop = chatBox.scrollHeight;
         });
-
+        
         socket.on('game_started', () => {
             window.location.href = `/versus/${myRoomCode}`;
         });
