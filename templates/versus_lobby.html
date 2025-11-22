@@ -117,6 +117,7 @@
                 </div>
 
                 <div class="controls-area">
+                    <div id="ready-count" style="margin-bottom: 0.5rem; font-weight: bold; color: var(--text-muted);">0/2 Listos</div>
                     <button id="btn-ready" class="play-btn ready-btn">¡ESTOY LISTO!</button>
                 </div>
             </div>
@@ -503,6 +504,29 @@
             } else {
                 avatar.classList.remove('ready-aura');
             }
+
+            // Chat Message & Counter
+            const players = document.querySelectorAll('.avatar-cube'); // Count total players visually present? No, better use data from server if possible.
+            // But we don't have full player list here easily without keeping state.
+            // Let's just count how many have 'ready-aura' class
+            
+            setTimeout(() => { // Wait for DOM update
+                const readyCount = document.querySelectorAll('.ready-aura').length;
+                const totalPlayers = document.querySelectorAll('.avatar-container').length; // Should be 2 usually
+                
+                // Update Counter Text
+                const readyBtn = document.getElementById('btn-ready');
+                if(readyBtn) readyBtn.textContent = data.ready && isMe ? "¡LISTO!" : "ESTOY LISTO";
+                
+                // Add System Message
+                // We need the username. We can get it from the DOM name element
+                const nameEl = document.getElementById(`p${targetIdx}-name`);
+                const username = nameEl ? nameEl.textContent : "Jugador";
+                
+                const color = data.ready ? '#4ade80' : '#fbbf24';
+                const statusText = data.ready ? "está listo" : "ya no está listo";
+                addSystemMessage(`ℹ️ <strong>${username}</strong> ${statusText}. (${readyCount}/2)`, color);
+            }, 50);
         });
 
         socket.on('all_ready', (data) => {

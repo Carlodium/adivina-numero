@@ -227,7 +227,7 @@
         let disconnectTimer = null;
         const DISCONNECT_TIMEOUT = 10000; // 10 seconds
 
-        socket.on('player_left_gameroom', (data) => {
+        socket.on('player_disconnected', (data) => {
             console.log('⚠️ Player left:', data);
             
             // Ocultar botón de revancha siempre
@@ -294,13 +294,15 @@
         // --- HELPERS ---
 
         function updatePlayerNames(data) {
-            if (data.players && data.player_names) {
-                const p1Sid = data.players[0];
-                const p2Sid = data.players[1]; // Might be undefined
+            const players = data.players; // Array of objects
+            if (players && players.length > 0) {
+                if (players[0]) p1NameEl.textContent = players[0].username;
                 
-                if (p1Sid) p1NameEl.textContent = data.player_names[p1Sid];
-                if (p2Sid) p2NameEl.textContent = data.player_names[p2Sid] || 'Esperando...';
-                else p2NameEl.textContent = 'Esperando...';
+                if (players[1]) {
+                    p2NameEl.textContent = players[1].username;
+                } else {
+                    p2NameEl.textContent = 'Esperando...';
+                }
             }
         }
 

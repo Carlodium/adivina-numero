@@ -140,7 +140,7 @@
 
 /* Ready Aura */
 .avatar-cube.ready-aura {
-    box-shadow: 0 0 0 5px #4ade80, 0 0 50px rgba(74, 222, 128, 0.6);
+    box-shadow: 0 0 0 5px #4ade80, 0 0 50px rgba(74, 222, 128, 0.6) !important;
     z-index: 10;
 }
 
@@ -258,12 +258,12 @@
 }
 /* Ojo izquierdo: inclinado hacia arriba-derecha / */
 .face.happy .eye.left {
-    transform: rotate(20deg); /* Inclinación suave */
+    transform: rotate(-20deg); /* Inclinación suave */
     transform-origin: center;
 }
 /* Ojo derecho: inclinado hacia arriba-izquierda \ */
 .face.happy .eye.right {
-    transform: rotate(-20deg); /* Inclinación suave opuesta */
+    transform: rotate(20deg); /* Inclinación suave opuesta */
     transform-origin: center;
 }
 .face.happy .pupil { display: none; }
