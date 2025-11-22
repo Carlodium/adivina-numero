@@ -35,17 +35,18 @@
         </label>
     </div>
 
+    <!-- Auth Status (Top Left) - Moved outside container -->
+    <div class="game-auth-status">
+      {% if session.get('user_id') %}
+        <span class="username-display">👤 {{ session.get('username') }}</span>
+        <a href="#" id="logout-link" class="btn-auth btn-logout">Cerrar Sesión</a>
+      {% else %}
+        <a href="/auth" class="btn-auth btn-login">Iniciar Sesión</a>
+        <a href="/auth?tab=register" class="btn-auth btn-register">Registrarse</a>
+      {% endif %}
+    </div>
+
     <div class="container">
-      <!-- Auth Status (Top Right) -->
-      <div class="game-auth-status">
-        {% if session.get('user_id') %}
-          <span class="username-display">👤 {{ session.get('username') }}</span>
-          <a href="#" id="logout-link" class="btn-auth btn-logout">Cerrar Sesión</a>
-        {% else %}
-          <a href="/auth" class="btn-auth btn-login">Iniciar Sesión</a>
-          <a href="/auth?tab=register" class="btn-auth btn-register">Registrarse</a>
-        {% endif %}
-          </div>
 
       <div class="main-layout">
         <!-- LEFT COLUMN: GAME -->

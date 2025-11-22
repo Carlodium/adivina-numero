@@ -133,30 +133,6 @@
 
         // --- AVATAR LOGIC ---
         const stage = document.getElementById('avatar-stage');
-        
-        // Eye Tracking (Pupil Movement)
-                    
-                    // Calculate vector from eye center to mouse
-                    const dx = e.clientX - eyeCenterX;
-                    const dy = e.clientY - eyeCenterY;
-                    
-                    // Calculate angle
-                    const angle = Math.atan2(dy, dx);
-                    
-                    // Calculate distance (clamped)
-                    // Max movement radius = (Eye Radius - Pupil Radius)
-                    // Eye: 22px (r=11), Pupil: 8px (r=4). Max offset = 7px.
-                    const maxOffset = 6; 
-                    // const dist = Math.min(maxOffset, Math.hypot(dx, dy) / 10); 
-                    
-                    // Actually, let's just clamp to maxOffset based on direction
-                    const moveX = Math.cos(angle) * Math.min(maxOffset, Math.hypot(dx, dy));
-                    const moveY = Math.sin(angle) * Math.min(maxOffset, Math.hypot(dx, dy));
-                    
-                    pupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
-                });
-            });
-        });
 
         // Synchronized Blinking
         setInterval(() => {
