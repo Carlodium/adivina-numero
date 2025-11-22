@@ -43,6 +43,33 @@ def register_events(socketio):
                         emit('waiting_for_players', {'players': list(room_data['players'].keys())}, to=room_code)
                 break
 
+    @socketio.on('claim_victory')
+    def handle_claim_victory(data):
+        room_code = data.get('room_code')
+        if room_code not in rooms:
+            return
+            
+        room = rooms[room_code]
+        if room['status'] != 'playing':
+            return
+
+        # Check if opponent is actually disconnected
+        opponent_sid = None
+        for sid, p_data in room['players'].items():
+            if sid != request.sid:
+                opponent_sid = sid
+                break
+        
+        if opponent_sid and not room['players'][opponent_sid]['connected']:
+            # Grant victory
+            winner_name = room['players'][request.sid]['username']
+            emit('game_over', {
+                'winner': winner_name, 
+                'secret_number': room['secret_number'],
+                'reason': 'abandonment'
+            }, to=room_code)
+            room['status'] = 'finished'
+
     @socketio.on('create_room')
     def handle_create_room(data):
         username = data.get('username', 'Guest')

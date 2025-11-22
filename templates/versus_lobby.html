@@ -51,6 +51,12 @@
                 </div>
 
                 <div class="avatar-stage" id="avatar-stage">
+                    <!-- Countdown Overlay -->
+                    <div id="countdown-layer" class="countdown-overlay hidden">
+                        <div class="countdown-number" id="countdown-num">3</div>
+                        <div class="countdown-text">Comenzando partida...</div>
+                    </div>
+
                     <!-- P1 -->
                     <div class="avatar-container" id="p1-container">
                         <div class="avatar-cube" id="p1-avatar">
@@ -64,7 +70,6 @@
                         </div>
                         <div class="player-info">
                             <div class="player-name" id="p1-name">Esperando...</div>
-                            <div class="ready-badge hidden" id="p1-ready">✅ LISTO</div>
                         </div>
                     </div>
 
@@ -84,7 +89,6 @@
                         </div>
                         <div class="player-info">
                             <div class="player-name" id="p2-name">Esperando...</div>
-                            <div class="ready-badge hidden" id="p2-ready">✅ LISTO</div>
                         </div>
                     </div>
                 </div>
@@ -92,7 +96,7 @@
                 <div class="controls-area">
                     <p class="hint-text">💡 Mantén ESPACIO para cargar salto. Click en caras para saludar.</p>
                     <button id="btn-ready" class="play-btn ready-btn">¡ESTOY LISTO!</button>
-                    <button id="btn-start" class="play-btn start-btn hidden" disabled>COMENZAR PARTIDA</button>
+                    <!-- Start button removed, handled by auto-countdown -->
                 </div>
             </div>
 
@@ -136,6 +140,7 @@
         let myRole = null;
         let mySid = null;
         let isReady = false;
+        let countdownInterval = null;
 
         // DOM Elements
         const menuSection = document.getElementById('menu-section');
@@ -146,43 +151,64 @@
         const p1Name = document.getElementById('p1-name');
         const p2Name = document.getElementById('p2-name');
         const p2Container = document.getElementById('p2-container');
-        const p1ReadyBadge = document.getElementById('p1-ready');
-        const p2ReadyBadge = document.getElementById('p2-ready');
         
         const btnReady = document.getElementById('btn-ready');
-        const btnStart = document.getElementById('btn-start');
         
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
         const btnSend = document.getElementById('btn-send');
+        
+        const countdownLayer = document.getElementById('countdown-layer');
+        const countdownNum = document.getElementById('countdown-num');
 
         // --- AVATAR LOGIC ---
         const stage = document.getElementById('avatar-stage');
         
-        // Eye Tracking (Global)
+        // Eye Tracking (Global & Parallel)
         document.addEventListener('mousemove', (e) => {
-            const eyes = document.querySelectorAll('.eye');
-            eyes.forEach(eye => {
-                if (eye.closest('.dizzy') || eye.closest('.happy')) return; // Don't track if dizzy/happy
+            const faces = document.querySelectorAll('.face');
+            
+            faces.forEach(face => {
+                if (face.classList.contains('dizzy') || face.classList.contains('happy')) return;
+
+                const rect = face.getBoundingClientRect();
+                const faceCenterX = rect.left + (rect.width / 2);
+                const faceCenterY = rect.top + (rect.height / 2);
                 
-                const rect = eye.getBoundingClientRect();
-                const x = rect.left + (rect.width / 2);
-                const y = rect.top + (rect.height / 2);
+                // Check if mouse is "inside" the face (with some padding)
+                const isInside = (
+                    e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom
+                );
+
+                const eyes = face.querySelectorAll('.eye');
                 
-                const rad = Math.atan2(e.clientX - x, e.clientY - y);
-                const rot = (rad * (180 / Math.PI) * -1) + 180;
-                
-                eye.style.transform = `rotate(${rot}deg)`;
+                if (isInside) {
+                    // Look straight ahead (reset)
+                    eyes.forEach(eye => eye.style.transform = `rotate(0deg)`);
+                } else {
+                    // Calculate angle from FACE center to mouse
+                    const rad = Math.atan2(e.clientX - faceCenterX, e.clientY - faceCenterY);
+                    const rot = (rad * (180 / Math.PI) * -1) + 180;
+                    
+                    // Apply SAME rotation to both eyes for parallel look
+                    eyes.forEach(eye => eye.style.transform = `rotate(${rot}deg)`);
+                }
             });
         });
 
-        // Blinking
+        // Synchronized Blinking
         setInterval(() => {
-            const eyes = document.querySelectorAll('.eye');
-            eyes.forEach(eye => {
-                if (Math.random() > 0.1) return; // Random blink
-                eye.classList.add('blink');
-                setTimeout(() => eye.classList.remove('blink'), 200);
+            const faces = document.querySelectorAll('.face');
+            faces.forEach(face => {
+                if (Math.random() > 0.3) return; // 30% chance per face
+                
+                const eyes = face.querySelectorAll('.eye');
+                eyes.forEach(eye => eye.classList.add('blink'));
+                
+                setTimeout(() => {
+                    eyes.forEach(eye => eye.classList.remove('blink'));
+                }, 200);
             });
         }, 3000);
 
@@ -197,6 +223,11 @@
         function setFaceState(cube, state) {
             const face = cube.querySelector('.face');
             face.classList.remove('happy', 'dizzy');
+            
+            // Reset transforms when changing state
+            const eyes = face.querySelectorAll('.eye');
+            eyes.forEach(eye => eye.style.transform = 'none');
+            
             if (state !== 'normal') face.classList.add(state);
         }
 
@@ -324,43 +355,52 @@
         });
 
         socket.on('player_ready_update', (data) => {
-            // Find which player is ready based on SID? 
-            // We don't easily know which SID is P1/P2 without storing it.
-            // But we can infer from the 'player_joined' logic or just ask server for full state.
-            // For simplicity, let's just toggle the badge if we knew who it was.
-            // Actually, let's just re-request state or handle it simpler:
-            // We need to know if 'data.sid' corresponds to P1 or P2.
-            // P1 is usually the first one.
-            
-            // Better approach: The server should send the list of ready players or we assume order.
-            // Let's just show the badge on the correct avatar.
-            // We need to store P1/P2 SIDs.
-            // Let's hack it: if data.sid == mySid, it's me. If not, it's opponent.
-            
             const isMe = data.sid === mySid;
             const myAvatarIdx = myRole === 'host' ? 1 : 2;
             const targetIdx = isMe ? myAvatarIdx : (myAvatarIdx === 1 ? 2 : 1);
             
-            const badge = document.getElementById(`p${targetIdx}-ready`);
-            if (data.ready) badge.classList.remove('hidden');
-            else badge.classList.add('hidden');
+            const avatar = document.getElementById(`p${targetIdx}-avatar`);
+            if (data.ready) {
+                avatar.classList.add('ready-aura');
+            } else {
+                avatar.classList.remove('ready-aura');
+            }
         });
 
         socket.on('all_ready', (data) => {
             if (data.ready) {
-                lobbyStatus.textContent = "¡TODOS LISTOS!";
-                if (myRole === 'host') {
-                    btnStart.classList.remove('hidden');
-                    btnStart.disabled = false;
-                    btnStart.classList.add('pulse'); // Add pulse effect
-                } else {
-                    lobbyStatus.textContent = "Esperando a que el anfitrión inicie...";
-                }
+                startCountdown();
             } else {
-                btnStart.classList.add('hidden');
-                btnStart.disabled = true;
+                cancelCountdown();
             }
         });
+
+        function startCountdown() {
+            countdownLayer.classList.remove('hidden');
+            let count = 3;
+            countdownNum.textContent = count;
+            
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownNum.textContent = count;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownNum.textContent = "GO!";
+                    if (myRole === 'host') {
+                        socket.emit('start_game', { room_code: myRoomCode });
+                    }
+                }
+            }, 1000);
+        }
+
+        function cancelCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownLayer.classList.add('hidden');
+            // Optional: Show message "Countdown cancelled"
+        }
 
         socket.on('avatar_anim', (data) => {
             const otherAvatar = myRole === 'host' ? document.getElementById('p2-avatar') : document.getElementById('p1-avatar');
@@ -398,10 +438,6 @@
             isReady = !isReady;
             btnReady.textContent = isReady ? "Cancelar" : "¡ESTOY LISTO!";
             btnReady.classList.toggle('secondary');
-        });
-
-        btnStart.addEventListener('click', () => {
-            socket.emit('start_game', { room_code: myRoomCode });
         });
 
         btnSend.addEventListener('click', sendChat);

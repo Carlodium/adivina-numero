@@ -191,29 +191,70 @@
             btnRematch.textContent = `Volver a Jugar (${data.votes}/2)`;
         });
 
+        // --- DISCONNECT LOGIC ---
+        let disconnectTimer = null;
+        const DISCONNECT_TIMEOUT = 10000; // 10 seconds
+
         socket.on('player_left_gameroom', (data) => {
             console.log('⚠️ Player left:', data);
             
-            // If game over modal is open
+            // If game over modal is open, just disable rematch
             if (!gameOverModal.classList.contains('hidden')) {
                 btnRematch.style.display = 'none';
+                addSystemMessage("⚠️ <strong>El rival ha abandonado.</strong> No hay revancha.");
+                return;
+            }
+
+            // In game notification
+            const msgId = 'disconnect-warning';
+            if (!document.getElementById(msgId)) {
+                const msg = document.createElement('div');
+                msg.id = msgId;
+                msg.className = 'chat-msg system-msg';
+                msg.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                msg.innerHTML = "⚠️ <strong>Rival desconectado.</strong> Esperando...";
+                gameLog.appendChild(msg);
+            }
+
+            // Start Timer
+            if (disconnectTimer) clearTimeout(disconnectTimer);
+            
+            disconnectTimer = setTimeout(() => {
+                // Show Claim Victory Button
+                const claimBtn = document.createElement('button');
+                claimBtn.id = 'btn-claim-victory';
+                claimBtn.className = 'play-btn';
+                claimBtn.style.background = '#ef4444';
+                claimBtn.style.marginTop = '1rem';
+                claimBtn.innerHTML = "🏆 Reclamar Victoria (Rival ausente)";
+                claimBtn.onclick = () => {
+                    socket.emit('claim_victory', { room_code: roomCode });
+                };
                 
-                // Check if message already exists
-                if (!document.getElementById('disconnect-msg')) {
-                    const msg = document.createElement('div');
-                    msg.id = 'disconnect-msg';
-                    msg.className = 'chat-msg system-msg';
-                    msg.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-                    msg.style.marginTop = '1rem';
-                    msg.innerHTML = "⚠️ <strong>El rival ha abandonado la sala.</strong><br>No es posible la revancha.";
-                    
-                    // Insert before the buttons
-                    const btnContainer = gameOverModal.querySelector('div[style*="display: flex"]');
-                    gameOverModal.insertBefore(msg, btnContainer);
-                }
-            } else {
-                // In game notification
-                addSystemMessage("⚠️ <strong>El rival se ha desconectado.</strong><br>Esperando reconexión...");
+                const warning = document.getElementById(msgId);
+                if (warning) warning.appendChild(claimBtn);
+                
+            }, DISCONNECT_TIMEOUT);
+        });
+
+        // We need a way to know if they reconnected. 
+        // Currently 'player_joined' might trigger, or we can listen to a new event.
+        // For now, let's assume if we receive a 'player_joined' or any game update, they are back.
+        // Actually, 'player_joined' is broadcasted when someone joins.
+        
+        socket.on('player_joined', () => {
+            // Cancel disconnect timer
+            if (disconnectTimer) {
+                clearTimeout(disconnectTimer);
+                disconnectTimer = null;
+            }
+            const warning = document.getElementById('disconnect-warning');
+            if (warning) warning.remove();
+            addSystemMessage("✅ <strong>Rival reconectado.</strong>");
+            
+            // Re-enable rematch if game over
+            if (!gameOverModal.classList.contains('hidden')) {
+                btnRematch.style.display = 'inline-block';
             }
         });
 
