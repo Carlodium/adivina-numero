@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         Math.random() < 0.8 ? Math.random() * 2 + 1 : Math.random() * 3 + 2;
 
       // Random Opacity Base
-      const opacity = Math.random() * 0.5 + 0.3;
+      const targetOpacity = Math.random() * 0.5 + 0.3;
 
       // Random Animation
       const duration = Math.random() * 3 + 2; // 2-5s
@@ -39,11 +39,20 @@ document.addEventListener("DOMContentLoaded", () => {
       star.style.top = `${y}%`;
       star.style.width = `${size}px`;
       star.style.height = `${size}px`;
-      star.style.opacity = opacity;
+      
+      // Init hidden for smooth fade-in
+      star.style.opacity = "0";
+      star.style.transition = "opacity 2s ease-in-out";
+      
       star.style.animationDuration = `${duration}s`;
       star.style.animationDelay = `${delay}s`;
 
       starContainer.appendChild(star);
+      
+      // Trigger fade in
+      requestAnimationFrame(() => {
+          star.style.opacity = targetOpacity;
+      });
     }
   }
 

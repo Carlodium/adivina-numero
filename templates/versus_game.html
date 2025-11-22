@@ -198,10 +198,23 @@
         socket.on('player_left_gameroom', (data) => {
             console.log('⚠️ Player left:', data);
             
-            // If game over modal is open, just disable rematch
+            // If game over modal is open, show message THERE
             if (!gameOverModal.classList.contains('hidden')) {
                 btnRematch.style.display = 'none';
-                addSystemMessage("⚠️ <strong>El rival ha abandonado.</strong> No hay revancha.");
+                
+                // Check if message already exists
+                if (!document.getElementById('modal-disconnect-msg')) {
+                    const modalMsg = document.createElement('div');
+                    modalMsg.id = 'modal-disconnect-msg';
+                    modalMsg.style.color = '#ef4444';
+                    modalMsg.style.marginTop = '1rem';
+                    modalMsg.style.fontWeight = 'bold';
+                    modalMsg.innerHTML = "⚠️ El rival ha abandonado. No hay revancha.";
+                    
+                    // Insert before buttons
+                    const btnContainer = gameOverModal.querySelector('div');
+                    gameOverModal.insertBefore(modalMsg, btnContainer);
+                }
                 return;
             }
 
