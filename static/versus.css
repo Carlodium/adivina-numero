@@ -117,21 +117,23 @@
 .avatar-cube {
     width: 120px;
     height: 120px;
-    background: linear-gradient(135deg, #fbbf24, #d97706);
+    background: linear-gradient(135deg, #fca5a5, #fb7185);
     border-radius: 35px;
     box-shadow: 
-        0 15px 35px rgba(251, 191, 36, 0.3),
-        inset 0 -10px 20px rgba(0,0,0,0.1);
+        0 15px 35px rgba(252, 165, 165, 0.4),
+        inset 0 -10px 20px rgba(255,255,255,0.2),
+        inset 0 10px 20px rgba(255,255,255,0.3);
     position: relative;
     transition: transform 0.1s;
     cursor: pointer;
 }
 
-.avatar-cube.p2 {
-    background: linear-gradient(135deg, #f87171, #dc2626);
+#p2-avatar {
+    background: linear-gradient(135deg, #67e8f9, #22d3ee);
     box-shadow: 
-        0 15px 35px rgba(239, 68, 68, 0.3),
-        inset 0 -10px 20px rgba(0,0,0,0.1);
+        0 15px 35px rgba(103, 232, 249, 0.4),
+        inset 0 -10px 20px rgba(255,255,255,0.2),
+        inset 0 10px 20px rgba(255,255,255,0.3);
 }
 
 /* Ready Aura */
@@ -154,15 +156,15 @@
 .face::before, .face::after {
     content: '';
     position: absolute;
-    width: 15px;
-    height: 8px;
-    background: rgba(255, 100, 100, 0.4);
+    width: 18px;
+    height: 10px;
+    background: rgba(255, 150, 150, 0.5);
     border-radius: 50%;
     top: 65px;
     z-index: 1;
 }
-.face::before { left: 25px; }
-.face::after { right: 25px; }
+.face::before { left: 22px; }
+.face::after { right: 22px; }
 
 /* --- HEADER BAR --- */
 .lobby-header-bar {
@@ -199,14 +201,14 @@
 }
 
 .eye {
-    width: 22px;
-    height: 22px;
-    background: #1e293b;
+    width: 26px;
+    height: 26px;
+    background: white;
     border-radius: 50%;
     position: relative;
-    overflow: hidden; /* Keep pupil inside if we wanted, but we clamp manually */
+    overflow: visible;
     transition: height 0.1s, border-radius 0.1s;
-    /* No rotation on the eye container itself! */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 /* Pupil (The moving part) */
@@ -214,9 +216,9 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 8px;
-    height: 8px;
-    background: white;
+    width: 12px;
+    height: 12px;
+    background: #1e293b;
     border-radius: 50%;
     margin-top: -4px; /* Center */
     margin-left: -4px;
@@ -241,15 +243,18 @@
     display: none;
 }
 
-/* Happy Eyes */
+/* Happy Eyes ^^ */
 .face.happy .eye {
-    height: 12px;
-    width: 22px;
+    height: 14px;
+    width: 14px;
     border-radius: 0;
     background: transparent;
-    border-top: 4px solid #1e293b;
-    margin-top: 8px;
+    border: none;
+    border-bottom: 3px solid #1e293b;
+    border-radius: 0 0 100% 100%;
+    margin-top: 6px;
     overflow: visible;
+    transform: rotate(180deg); /* Flip to make it ^^ */
 }
 .face.happy .pupil { display: none; }
 
