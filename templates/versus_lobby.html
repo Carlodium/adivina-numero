@@ -27,7 +27,15 @@
     <div class="stars2"></div>
 
     <div class="container lobby-wrapper">
-        <a href="/" class="back-link">⬅️ Volver al Hub</a>
+        <div class="lobby-header-bar">
+            <a href="/" class="back-link">⬅️ Volver al Hub</a>
+            
+            <!-- Countdown Badge (Moved here) -->
+            <div id="countdown-layer" class="countdown-badge hidden">
+                <div class="countdown-number" id="countdown-num">3</div>
+                <div class="countdown-text">Iniciando...</div>
+            </div>
+        </div>
 
         <!-- MENU INICIAL -->
         <div id="menu-section" class="game-card menu-card">
@@ -48,12 +56,6 @@
                 <div class="room-header">
                     <h3>Sala: <span id="display-room-code">????</span></h3>
                     <p id="lobby-status">Esperando jugadores...</p>
-                    
-                    <!-- Countdown Badge (Top Right) -->
-                    <div id="countdown-layer" class="countdown-badge hidden">
-                        <div class="countdown-number" id="countdown-num">3</div>
-                        <div class="countdown-text">Iniciando...</div>
-                    </div>
                 </div>
 
                 <div class="avatar-stage" id="avatar-stage">
@@ -63,8 +65,8 @@
                         <div class="avatar-cube" id="p1-avatar">
                             <div class="face">
                                 <div class="eyes">
-                                    <div class="eye left"></div>
-                                    <div class="eye right"></div>
+                                    <div class="eye left"><div class="pupil"></div></div>
+                                    <div class="eye right"><div class="pupil"></div></div>
                                 </div>
                                 <div class="mouth"></div>
                             </div>
@@ -82,8 +84,8 @@
                         <div class="avatar-cube p2" id="p2-avatar">
                             <div class="face">
                                 <div class="eyes">
-                                    <div class="eye left"></div>
-                                    <div class="eye right"></div>
+                                    <div class="eye left"><div class="pupil"></div></div>
+                                    <div class="eye right"><div class="pupil"></div></div>
                                 </div>
                                 <div class="mouth"></div>
                             </div>
@@ -95,9 +97,7 @@
                 </div>
 
                 <div class="controls-area">
-                    <p class="hint-text">💡 Mantén ESPACIO para cargar salto. Click en caras para saludar.</p>
                     <button id="btn-ready" class="play-btn ready-btn">¡ESTOY LISTO!</button>
-                    <!-- Start button removed, handled by auto-countdown -->
                 </div>
             </div>
 
@@ -165,36 +165,45 @@
         // --- AVATAR LOGIC ---
         const stage = document.getElementById('avatar-stage');
         
-        // Eye Tracking (Global & Parallel)
+        // --- AVATAR LOGIC ---
+        const stage = document.getElementById('avatar-stage');
+        
+        // Eye Tracking (Pupil Movement)
         document.addEventListener('mousemove', (e) => {
             const faces = document.querySelectorAll('.face');
             
             faces.forEach(face => {
                 if (face.classList.contains('dizzy') || face.classList.contains('happy')) return;
 
-                const rect = face.getBoundingClientRect();
-                const faceCenterX = rect.left + (rect.width / 2);
-                const faceCenterY = rect.top + (rect.height / 2);
-                
-                // Check if mouse is "inside" the face (with some padding)
-                const isInside = (
-                    e.clientX >= rect.left && e.clientX <= rect.right &&
-                    e.clientY >= rect.top && e.clientY <= rect.bottom
-                );
-
                 const eyes = face.querySelectorAll('.eye');
                 
-                if (isInside) {
-                    // Look straight ahead (reset)
-                    eyes.forEach(eye => eye.style.transform = `rotate(0deg)`);
-                } else {
-                    // Calculate angle from FACE center to mouse
-                    const rad = Math.atan2(e.clientX - faceCenterX, e.clientY - faceCenterY);
-                    const rot = (rad * (180 / Math.PI) * -1) + 180;
+                eyes.forEach(eye => {
+                    const pupil = eye.querySelector('.pupil');
+                    if (!pupil) return;
+
+                    const rect = eye.getBoundingClientRect();
+                    const eyeCenterX = rect.left + (rect.width / 2);
+                    const eyeCenterY = rect.top + (rect.height / 2);
                     
-                    // Apply SAME rotation to both eyes for parallel look
-                    eyes.forEach(eye => eye.style.transform = `rotate(${rot}deg)`);
-                }
+                    // Calculate vector from eye center to mouse
+                    const dx = e.clientX - eyeCenterX;
+                    const dy = e.clientY - eyeCenterY;
+                    
+                    // Calculate angle
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Calculate distance (clamped)
+                    // Max movement radius = (Eye Radius - Pupil Radius)
+                    // Eye: 22px (r=11), Pupil: 8px (r=4). Max offset = 7px.
+                    const maxOffset = 6; 
+                    const dist = Math.min(maxOffset, Math.hypot(dx, dy) / 10); // Divide by 10 to make it less sensitive/follow closer
+                    
+                    // Actually, let's just clamp to maxOffset based on direction
+                    const moveX = Math.cos(angle) * Math.min(maxOffset, Math.hypot(dx, dy));
+                    const moveY = Math.sin(angle) * Math.min(maxOffset, Math.hypot(dx, dy));
+                    
+                    pupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                });
             });
         });
 
@@ -226,8 +235,8 @@
             face.classList.remove('happy', 'dizzy');
             
             // Reset transforms when changing state
-            const eyes = face.querySelectorAll('.eye');
-            eyes.forEach(eye => eye.style.transform = 'none');
+            const pupils = face.querySelectorAll('.pupil');
+            pupils.forEach(p => p.style.transform = 'translate(0, 0)');
             
             if (state !== 'normal') face.classList.add(state);
         }

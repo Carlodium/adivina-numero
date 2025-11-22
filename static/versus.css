@@ -138,6 +138,33 @@
 .face::before { left: 25px; }
 .face::after { right: 25px; }
 
+/* --- HEADER BAR --- */
+.lobby-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.back-link {
+    margin-bottom: 0; /* Reset */
+}
+
+/* Countdown Badge (Top Right of Header Bar) */
+.countdown-badge {
+    background: rgba(15, 23, 42, 0.9);
+    border: 2px solid var(--primary);
+    border-radius: 1rem;
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s ease;
+    z-index: 50;
+}
+
+/* --- AVATAR EYES (NEW STRUCTURE) --- */
 .eyes {
     display: flex;
     gap: 24px;
@@ -151,29 +178,41 @@
     background: #1e293b;
     border-radius: 50%;
     position: relative;
+    overflow: hidden; /* Keep pupil inside if we wanted, but we clamp manually */
     transition: height 0.1s, border-radius 0.1s;
+    /* No rotation on the eye container itself! */
 }
 
-/* Eye Tracking Pupil Effect */
-.eye::after {
-    content: '';
+/* Pupil (The moving part) */
+.pupil {
     position: absolute;
-    top: 4px;
-    left: 4px;
+    top: 50%;
+    left: 50%;
     width: 8px;
     height: 8px;
     background: white;
     border-radius: 50%;
+    margin-top: -4px; /* Center */
+    margin-left: -4px;
     opacity: 0.9;
+    /* Transform set by JS */
 }
+
+/* Remove old pseudo-element pupil */
+.eye::after { display: none; }
 
 /* --- ANIMATIONS --- */
 
-/* Blink */
+/* Blink: Squashes the EYE container vertically. Since it's not rotated, it squashes Down. */
 .eye.blink {
     height: 2px;
     border-radius: 0;
     margin-top: 10px;
+}
+
+/* Hide pupil when blinking so it doesn't stick out or look weird */
+.eye.blink .pupil {
+    display: none;
 }
 
 /* Happy Eyes */
@@ -184,9 +223,9 @@
     background: transparent;
     border-top: 4px solid #1e293b;
     margin-top: 8px;
-    transform: none !important;
+    overflow: visible;
 }
-.face.happy .eye::after { display: none; }
+.face.happy .pupil { display: none; }
 
 /* Dizzy Eyes (Spirals) */
 .face.dizzy .eye {
@@ -196,8 +235,10 @@
     width: 22px;
     height: 22px;
     position: relative;
-    transform: none !important;
+    overflow: visible;
 }
+.face.dizzy .pupil { display: none; } /* Hide normal pupil */
+
 .face.dizzy .eye::before {
     content: '';
     position: absolute;
@@ -207,7 +248,6 @@
     transform-origin: center;
     animation: spin 1s linear infinite;
 }
-.face.dizzy .eye::after { display: none; }
 
 @keyframes spin { 
     0% { transform: translate(-50%, -50%) rotate(0deg); }
@@ -307,42 +347,6 @@
     background: #ef4444;
 }
 
-/* Countdown Badge (Top Right) */
-.countdown-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: rgba(15, 23, 42, 0.9);
-    border: 2px solid var(--primary);
-    border-radius: 1rem;
-    padding: 0.5rem 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    animation: slideIn 0.3s ease;
-    z-index: 50;
-}
-
-.countdown-number {
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: #fbbf24;
-    font-family: monospace;
-}
-
-.countdown-text {
-    font-size: 0.9rem;
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(20px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
 /* Responsive */
 @media (max-width: 800px) {
     .lobby-grid {
@@ -351,5 +355,10 @@
     }
     .chat-card {
         height: 300px;
+    }
+    .lobby-header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
     }
 }
