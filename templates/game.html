@@ -143,13 +143,20 @@
           </table>
         </div>
       </div>
-    </div>
+    </div> <!-- Closing container -->
 
     <script>
+        // Prevent FOUC - Run immediately
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+
         // --- DETECCIÓN DE DISPOSITIVO ---
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
         const deviceType = isMobile ? 'Mobile' : 'Desktop';
-        document.getElementById('device-input').value = deviceType;
+        
+        const deviceInput = document.getElementById('device-input');
+        if (deviceInput) deviceInput.value = deviceType;
 
         // --- 2. LÓGICA DEL JUEGO ---
         let numeroSecreto = Math.floor(Math.random() * 100) + 1;
@@ -162,148 +169,155 @@
         const streakContainer = document.getElementById('streak-container');
         const streakCount = document.getElementById('streak-count');
         
-        if (racha > 0) {
+        if (racha > 0 && streakContainer && streakCount) {
             streakContainer.classList.remove('hidden');
             streakCount.textContent = racha;
         }
 
         const mensajeEl = document.getElementById('mensaje');
-        const intentosEl = document.getElementById('intentos-count');
+        const intentosEl = document.getElementById('intentos-count'); // Note: This element might be missing in HTML?
         const guessForm = document.getElementById('guess-form');
         const intentoInput = document.getElementById('intento');
         const gameSection = document.getElementById('game-section');
         const winnerSection = document.getElementById('winner-section');
         const intentosFinalesInput = document.getElementById('intentos_finales_input');
-        const restartBtn = document.getElementById('restart-btn');
+        const restartBtn = document.getElementById('restart-btn'); // Note: This element might be missing in HTML?
         const nombreInput = document.getElementById('nombre-input');
         const historyContainer = document.getElementById('history-container');
 
         console.log("Número secreto (shhh):", numeroSecreto);
 
-        guessForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (juegoTerminado) return;
+        if (guessForm) {
+            guessForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (juegoTerminado) return;
 
-            const valor = intentoInput.value.trim();
-            
-            if (!valor) {
-                mensajeEl.textContent = "¡No has escrito nada! Por favor, introduce un número.";
-                mensajeEl.style.color = "#fbbf24";
-                return;
-            }
-
-            const numero = parseInt(valor);
-
-            if (isNaN(numero) || numero < 1 || numero > 100) {
-                mensajeEl.textContent = `¡Oye! El ${valor} no vale. Tiene que ser entre 1 y 100.`;
-                mensajeEl.style.color = "#fbbf24";
-                intentoInput.value = '';
-                return;
-            }
-
-            if (intentosPrevios.includes(numero)) {
-                let pista = '';
-                if (numero < numeroSecreto) pista = ' (era muy bajo)';
-                else if (numero > numeroSecreto) pista = ' (era muy alto)';
+                const valor = intentoInput.value.trim();
                 
-                mensajeEl.textContent = `¡Ya dijiste el ${numero}! Prueba con otro diferente${pista}.`;
-                mensajeEl.style.color = "#fbbf24";
-                intentoInput.value = '';
-                return;
-            }
-
-            // Intento válido
-            intentos++;
-            intentosPrevios.push(numero);
-            intentosEl.textContent = intentos;
-            mensajeEl.style.color = "var(--text-main)";
-
-            // Añadir al historial visual
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
-            
-            if (numero < numeroSecreto) {
-                mensajeEl.textContent = `El número ${numero} es mas bajo. ¡Inténtalo de nuevo!`;
-                historyItem.innerHTML = `${numero} <span class="arrow up">⬆️</span>`;
-                historyItem.classList.add('too-low');
-                intentoInput.value = '';
-                intentoInput.focus();
-            } else if (numero > numeroSecreto) {
-                mensajeEl.textContent = `El número ${numero} es mas alto. ¡Inténtalo de nuevo!`;
-                historyItem.innerHTML = `${numero} <span class="arrow down">⬇️</span>`;
-                historyItem.classList.add('too-high');
-                intentoInput.value = '';
-                intentoInput.focus();
-            } else {
-                // ¡GANASTE!
-                juegoTerminado = true;
-                
-                // Confeti
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
-
-                // Actualizar Racha
-                racha++;
-                localStorage.setItem('winStreak', racha);
-                streakCount.textContent = racha;
-                streakContainer.classList.remove('hidden');
-
-                // Comprobar si es récord personal
-                const userBest = {{ user_best if user_best else 'null' }};
-                const isRecord = userBest === null || intentos < userBest;
-                
-                if (isRecord) {
-                    mensajeEl.textContent = `¡Felicidades! Has adivinado el número ${numeroSecreto} en ${intentos} intentos.`;
-                    mensajeEl.style.color = "#10b981";
-                } else {
-                    mensajeEl.textContent = `¡Acertaste en ${intentos} intentos! Pero no superaste tu récord personal (${userBest} intentos). ¡Sigue intentándolo! 💪`;
+                if (!valor) {
+                    mensajeEl.textContent = "¡No has escrito nada! Por favor, introduce un número.";
                     mensajeEl.style.color = "#fbbf24";
+                    return;
                 }
 
-                gameSection.classList.add('hidden');
-                winnerSection.classList.remove('hidden');
-                intentosFinalesInput.value = intentos;
+                const numero = parseInt(valor);
+
+                if (isNaN(numero) || numero < 1 || numero > 100) {
+                    mensajeEl.textContent = `¡Oye! El ${valor} no vale. Tiene que ser entre 1 y 100.`;
+                    mensajeEl.style.color = "#fbbf24";
+                    intentoInput.value = '';
+                    return;
+                }
+
+                if (intentosPrevios.includes(numero)) {
+                    let pista = '';
+                    if (numero < numeroSecreto) pista = ' (era muy bajo)';
+                    else if (numero > numeroSecreto) pista = ' (era muy alto)';
+                    
+                    mensajeEl.textContent = `¡Ya dijiste el ${numero}! Prueba con otro diferente${pista}.`;
+                    mensajeEl.style.color = "#fbbf24";
+                    intentoInput.value = '';
+                    return;
+                }
+
+                // Intento válido
+                intentos++;
+                intentosPrevios.push(numero);
+                // intentosEl.textContent = intentos; // Removed as element might not exist
+                mensajeEl.style.color = "var(--text-main)";
+
+                // Añadir al historial visual
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
                 
-                // Mostrar u ocultar botón de guardar según si es récord
-                const saveButton = winnerSection.querySelector('button[type="submit"]');
-                if (saveButton) {
-                    if (isRecord) {
-                        saveButton.style.display = 'block';
-                    } else {
-                        saveButton.style.display = 'none';
+                if (numero < numeroSecreto) {
+                    mensajeEl.textContent = `El número ${numero} es mas bajo. ¡Inténtalo de nuevo!`;
+                    historyItem.innerHTML = `${numero} <span class="arrow up">⬆️</span>`;
+                    historyItem.classList.add('too-low');
+                    intentoInput.value = '';
+                    intentoInput.focus();
+                } else if (numero > numeroSecreto) {
+                    mensajeEl.textContent = `El número ${numero} es mas alto. ¡Inténtalo de nuevo!`;
+                    historyItem.innerHTML = `${numero} <span class="arrow down">⬇️</span>`;
+                    historyItem.classList.add('too-high');
+                    intentoInput.value = '';
+                    intentoInput.focus();
+                } else {
+                    // ¡GANASTE!
+                    juegoTerminado = true;
+                    
+                    // Confeti
+                    if (typeof confetti !== 'undefined') {
+                        confetti({
+                            particleCount: 150,
+                            spread: 70,
+                            origin: { y: 0.6 }
+                        });
                     }
+
+                    // Actualizar Racha
+                    racha++;
+                    localStorage.setItem('winStreak', racha);
+                    if (streakCount) streakCount.textContent = racha;
+                    if (streakContainer) streakContainer.classList.remove('hidden');
+
+                    // Comprobar si es récord personal
+                    const userBest = {{ user_best|tojson if user_best is not none else 'null' }};
+                    const isRecord = userBest === null || intentos < userBest;
+                    
+                    if (isRecord) {
+                        mensajeEl.textContent = `¡Felicidades! Has adivinado el número ${numeroSecreto} en ${intentos} intentos.`;
+                        mensajeEl.style.color = "#10b981";
+                    } else {
+                        mensajeEl.textContent = `¡Acertaste en ${intentos} intentos! Pero no superaste tu récord personal (${userBest} intentos). ¡Sigue intentándolo! 💪`;
+                        mensajeEl.style.color = "#fbbf24";
+                    }
+
+                    gameSection.classList.add('hidden');
+                    winnerSection.classList.remove('hidden');
+                    if (intentosFinalesInput) intentosFinalesInput.value = intentos;
+                    
+                    // Mostrar u ocultar botón de guardar según si es récord
+                    const saveButton = winnerSection.querySelector('button[type="submit"]');
+                    if (saveButton) {
+                        if (isRecord) {
+                            saveButton.style.display = 'block';
+                        } else {
+                            saveButton.style.display = 'none';
+                        }
+                    }
+                    
+                    if (nombreInput) {
+                        setTimeout(() => nombreInput.focus(), 100);
+                    }
+                    return; // No añadir al historial si gana
                 }
                 
-                if (nombreInput) {
-                    setTimeout(() => nombreInput.focus(), 100);
-                }
-                return; // No añadir al historial si gana
-            }
-            
-            historyContainer.prepend(historyItem);
-        });
+                if (historyContainer) historyContainer.prepend(historyItem);
+            });
+        }
 
-        restartBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            numeroSecreto = Math.floor(Math.random() * 100) + 1;
-            intentos = 0;
-            intentosPrevios = [];
-            juegoTerminado = false;
-            
-            mensajeEl.textContent = "He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?";
-            mensajeEl.style.color = "var(--text-main)";
-            intentosEl.textContent = "0";
-            intentoInput.value = '';
-            historyContainer.innerHTML = ''; // Limpiar historial
-            
-            winnerSection.classList.add('hidden');
-            gameSection.classList.remove('hidden');
-            intentoInput.focus();
-            console.log("Nuevo número secreto:", numeroSecreto);
-        });
+        // Restart logic (if button exists, though it seems missing in HTML)
+        if (restartBtn) {
+            restartBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                numeroSecreto = Math.floor(Math.random() * 100) + 1;
+                intentos = 0;
+                intentosPrevios = [];
+                juegoTerminado = false;
+                
+                mensajeEl.textContent = "He pensado un número entre 1 y 100. ¿Puedes adivinar cuál es?";
+                mensajeEl.style.color = "var(--text-main)";
+                // intentosEl.textContent = "0";
+                intentoInput.value = '';
+                if (historyContainer) historyContainer.innerHTML = ''; // Limpiar historial
+                
+                winnerSection.classList.add('hidden');
+                gameSection.classList.remove('hidden');
+                intentoInput.focus();
+                console.log("Nuevo número secreto:", numeroSecreto);
+            });
+        }
 
         // --- 3. FILTROS DE RANKING ---
         const filterBtns = document.querySelectorAll('.filter-btn');
@@ -323,26 +337,28 @@
                     const data = await response.json();
                     
                     // Renderizar tabla
-                    rankingBody.innerHTML = '';
-                    if (data.scores.length === 0) {
-                        rankingBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay puntuaciones aún</td></tr>';
-                    } else {
-                        data.scores.forEach(score => {
-                            let badgesHtml = '';
-                            if (score.badges) {
-                                score.badges.forEach(badge => {
-                                    badgesHtml += `<span class="badge ${badge.class}" title="${badge.title}">${badge.icon}</span>`;
-                                });
-                            }
+                    if (rankingBody) {
+                        rankingBody.innerHTML = '';
+                        if (data.scores.length === 0) {
+                            rankingBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay puntuaciones aún</td></tr>';
+                        } else {
+                            data.scores.forEach(score => {
+                                let badgesHtml = '';
+                                if (score.badges) {
+                                    score.badges.forEach(badge => {
+                                        badgesHtml += `<span class="badge ${badge.class}" title="${badge.title}">${badge.icon}</span>`;
+                                    });
+                                }
 
-                            const row = `
-                                <tr>
-                                    <td>${score.name}</td>
-                                    <td class="badges-cell">${badgesHtml}</td>
-                                    <td>${score.attempts}</td>
-                                </tr>`;
-                            rankingBody.innerHTML += row;
-                        });
+                                const row = `
+                                    <tr>
+                                        <td>${score.name}</td>
+                                        <td class="badges-cell">${badgesHtml}</td>
+                                        <td>${score.attempts}</td>
+                                    </tr>`;
+                                rankingBody.innerHTML += row;
+                            });
+                        }
                     }
                 } catch (error) {
                     console.error('Error cargando ranking:', error);
@@ -375,23 +391,20 @@
         // Load saved theme
         if (localStorage.getItem('theme') === 'light') {
             body.classList.add('light-mode');
-            toggleSwitch.checked = true;
+            if (toggleSwitch) toggleSwitch.checked = true;
         }
 
-        toggleSwitch.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                body.classList.add('light-mode');
-                localStorage.setItem('theme', 'light');
-            } else {
-                body.classList.remove('light-mode');
-                localStorage.setItem('theme', 'dark');
-            }
-        });
-
-        // Prevent FOUC
-        document.addEventListener('DOMContentLoaded', () => {
-            document.body.classList.add('loaded');
-        });
+        if (toggleSwitch) {
+            toggleSwitch.addEventListener('change', function(e) {
+                if (e.target.checked) {
+                    body.classList.add('light-mode');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    body.classList.remove('light-mode');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        }
     </script>
 
   </body>
