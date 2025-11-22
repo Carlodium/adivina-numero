@@ -51,6 +51,11 @@ body {
 
 /* ... (rest of body styles) ... */
 
+body.loaded {
+  visibility: visible;
+  animation: bodyFadeIn 0.3s ease;
+}
+
 @keyframes bodyFadeIn {
   from {
     opacity: 0;
