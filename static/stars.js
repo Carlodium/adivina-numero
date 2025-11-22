@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.prepend(starContainer);
 
   // Config
-  const STAR_COUNT = 60;
+  const STAR_COUNT = 150;
 
   function createStars() {
     starContainer.innerHTML = ""; // Clear
