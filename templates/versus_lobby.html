@@ -156,6 +156,8 @@
             }
         });
 
+        
+
         const socket = io();
         let myRoomCode = null;
         let myRole = null;
@@ -168,12 +170,13 @@
         const lobbySection = document.getElementById('lobby-section');
         const displayRoomCode = document.getElementById('display-room-code');
         const lobbyStatus = document.getElementById('lobby-status');
-        
+
         const p1Name = document.getElementById('p1-name');
         const p2Name = document.getElementById('p2-name');
         const p2Container = document.getElementById('p2-container');
         
         const btnReady = document.getElementById('btn-ready');
+        const btnStart = document.getElementById('btn-start');
         
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
@@ -301,6 +304,13 @@
                 }
             }
         });
+
+        // Botón Comenzar Partida
+        if (btnStart) {
+            btnStart.addEventListener('click', () => {
+                socket.emit('start_game', { room_code: myRoomCode });
+            });
+        }
 
         document.addEventListener('keyup', (e) => {
             if (e.code === 'Space' && isCharging) {

@@ -275,10 +275,27 @@ def register_events(socketio):
                 # Remove player from room
                 del room['players'][request.sid]
                 
-                # If room is empty, delete it
+                # If room is empty, delete it ONLY if status is NOT 'playing'
                 if len(room['players']) == 0:
-                    del rooms[room_code]
-                    print(f"Room {room_code} deleted (empty)")
+                    if room.get('status') != 'playing':
+                        del rooms[room_code]
+                        print(f"Room {room_code} deleted (empty)")
+                    else:
+                        print(f"Room {room_code} kept alive (playing) despite empty")
                 else:
                     print(f"{username} disconnected from room {room_code}")
                 break
+
+    @socketio.on('start_game')
+    def handle_start_game(data):
+        room_code = data.get('room_code')
+        if room_code in rooms:
+            rooms[room_code]['status'] = 'playing'
+            # Initialize game state if needed (e.g. random number)
+            target = random.randint(1, 100)
+            rooms[room_code]['target'] = target
+            rooms[room_code]['guesses'] = {} # sid -> guess
+            rooms[room_code]['round'] = 1
+            
+            emit('game_started', {'room_code': room_code}, to=room_code)
+            print(f"Game started in room {room_code} (Target: {target})")
