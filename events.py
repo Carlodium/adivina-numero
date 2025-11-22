@@ -169,7 +169,13 @@ def register_events(socketio):
         
         if guess == target:
             room['status'] = 'finished'
-            emit('game_over', {'winner': request.sid, 'number': target}, to=room_code)
+            # Obtener nombre del ganador
+            winner_name = room['players'][request.sid]['username']
+            emit('game_over', {
+                'winner': request.sid, 
+                'winner_name': winner_name,
+                'number': target
+            }, to=room_code)
         else:
             result = 'low' if guess < target else 'high'
             

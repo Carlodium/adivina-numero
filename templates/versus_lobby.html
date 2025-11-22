@@ -165,6 +165,15 @@
         let isReady = false;
         let countdownInterval = null;
 
+        // Update my role
+        const myPlayer = players.find(p => p.sid === mySid);
+        if (myPlayer) {
+            if (myRole !== 'host' && myPlayer.role === 'host') {
+                addSystemMessage("👑 <strong>¡Ahora eres el Host!</strong>", "#4ade80");
+            }
+            myRole = myPlayer.role;
+        }
+
         // DOM Elements
         const menuSection = document.getElementById('menu-section');
         const lobbySection = document.getElementById('lobby-section');
@@ -386,10 +395,11 @@
                 }
             }
         });
+
         // Escuchar cuando un jugador se desconecta
         socket.on('player_disconnected', (data) => {
-            alert(`${data.username} se ha desconectado`);
-            // Opcional: volver al menú o mostrar mensaje
+            // En vez de alert, mensaje en el chat
+            addSystemMessage(`⚠️ <strong>${data.username}</strong> se ha desconectado.`, '#ef4444');
         });
 
         // Create/Join
@@ -429,7 +439,7 @@
             if (myPlayer) {
                 myRole = myPlayer.role;
             }
-            
+
             setupLobby(); // Refresh buttons based on new role
             
             // Update UI based on players
@@ -461,7 +471,23 @@
                 if (btnStart) btnStart.disabled = true;
             }
         }
+        
+        function addSystemMessage(text, color = '#fbbf24') {
+            const chatBox = document.getElementById('chat-box');
+            const msgDiv = document.createElement('div');
+            msgDiv.style.padding = '5px 10px';
+            msgDiv.style.marginBottom = '5px';
+            msgDiv.style.borderRadius = '5px';
+            msgDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
+            msgDiv.style.color = color;
+            msgDiv.style.fontSize = '0.9rem';
+            msgDiv.style.textAlign = 'center';
+            msgDiv.innerHTML = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
+        // --- SOCKET LOGIC ---
         socket.on('lobby_update', (data) => {
             handleLobbyUpdate(data);
         });

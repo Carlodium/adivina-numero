@@ -197,11 +197,25 @@
 
         socket.on('game_over', (data) => {
             const isWin = data.winner === socket.id;
+            const winnerName = data.winner_name || "Alguien";
+            
             document.getElementById('winner-text').textContent = isWin ? "¡VICTORIA! 🏆" : "DERROTA 💀";
-            document.getElementById('secret-number').textContent = data.number;
+            // Mostrar quién ganó si no fui yo
+            if (!isWin) {
+                 updateStatus(`🏁 Ganó ${winnerName}`);
+            }
+            
+            document.getElementById('secret-number').textContent = `El número era ${data.number}`;
+            
+            // Mensaje detallado en el modal
+            const modalTitle = document.querySelector('#game-over-modal h2');
+            if (modalTitle) {
+                modalTitle.textContent = isWin ? "¡Has Ganado!" : `${winnerName} ha ganado!`;
+            }
+            
             gameOverModal.classList.remove('hidden');
             updateStatus("🏁 Partida terminada");
-            guessedNumbers.clear(); // Reset for next game
+            guessedNumbers.clear(); 
         });
         
         socket.on('rematch_update', (data) => {
@@ -216,56 +230,44 @@
         socket.on('player_left_gameroom', (data) => {
             console.log('⚠️ Player left:', data);
             
-            // If game over modal is open, show message THERE
+            // Ocultar botón de revancha siempre
+            if (btnRematch) btnRematch.style.display = 'none';
+            // Si el modal de Game Over está abierto
             if (!gameOverModal.classList.contains('hidden')) {
-                btnRematch.style.display = 'none';
+                // Mostrar mensaje de desconexión en el modal
+                const modalContent = gameOverModal.querySelector('.modal-content');
+                let disconnectMsg = document.getElementById('modal-disconnect-msg');
                 
-                // Check if message already exists
-                if (!document.getElementById('modal-disconnect-msg')) {
-                    const modalMsg = document.createElement('div');
-                    modalMsg.id = 'modal-disconnect-msg';
-                    modalMsg.style.color = '#ef4444';
-                    modalMsg.style.marginTop = '1rem';
-                    modalMsg.style.fontWeight = 'bold';
-                    modalMsg.innerHTML = "⚠️ El rival ha abandonado. No hay revancha.";
+                if (!disconnectMsg) {
+                    disconnectMsg = document.createElement('p');
+                    disconnectMsg.id = 'modal-disconnect-msg';
+                    disconnectMsg.style.color = '#ef4444';
+                    disconnectMsg.style.fontWeight = 'bold';
+                    disconnectMsg.style.marginTop = '1rem';
+                    disconnectMsg.innerHTML = "⚠️ El rival se ha desconectado.<br>No es posible jugar la revancha.";
                     
-                    // Insert before buttons
-                    const btnContainer = gameOverModal.querySelector('div');
-                    gameOverModal.insertBefore(modalMsg, btnContainer);
+                    // Insertar antes de los botones
+                    const buttonsDiv = modalContent.querySelector('div'); // Asumiendo que los botones están en un div
+                    if(buttonsDiv) modalContent.insertBefore(disconnectMsg, buttonsDiv);
+                    else modalContent.appendChild(disconnectMsg);
                 }
                 return;
             }
-
-            // In game notification
-            const msgId = 'disconnect-warning';
-            if (!document.getElementById(msgId)) {
-                const msg = document.createElement('div');
-                msg.id = msgId;
-                msg.className = 'chat-msg system-msg';
-                msg.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-                msg.innerHTML = "⚠️ <strong>Rival desconectado.</strong> Esperando...";
-                gameLog.appendChild(msg);
-            }
-
-            // Start Timer
-            if (disconnectTimer) clearTimeout(disconnectTimer);
+            // Notificación en el juego (Chat)
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg system-msg';
+            msg.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+            msg.innerHTML = "⚠️ <strong>Rival desconectado.</strong> Fin de la partida.";
+            gameLog.appendChild(msg);
             
-            disconnectTimer = setTimeout(() => {
-                // Show Claim Victory Button
-                const claimBtn = document.createElement('button');
-                claimBtn.id = 'btn-claim-victory';
-                claimBtn.className = 'play-btn';
-                claimBtn.style.background = '#ef4444';
-                claimBtn.style.marginTop = '1rem';
-                claimBtn.innerHTML = "🏆 Reclamar Victoria (Rival ausente)";
-                claimBtn.onclick = () => {
-                    socket.emit('claim_victory', { room_code: roomCode });
-                };
-                
-                const warning = document.getElementById(msgId);
-                if (warning) warning.appendChild(claimBtn);
-                
-            }, DISCONNECT_TIMEOUT);
+            // Mostrar botón de Salir/Reclamar Victoria
+            updateStatus("⚠️ Rival desconectado");
+            
+            // Opcional: Abrir modal forzado o mostrar botón grande de salir
+            setTimeout(() => {
+                 alert("El rival se ha desconectado. Volviendo al menú.");
+                 window.location.href = "/versus";
+            }, 3000);
         });
 
         // We need a way to know if they reconnected. 
