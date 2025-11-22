@@ -35,18 +35,17 @@
         </label>
     </div>
 
-    <!-- Auth Status (Top Left) - Moved outside container -->
-    <div class="game-auth-status">
-      {% if session.get('user_id') %}
-        <span class="username-display">👤 {{ session.get('username') }}</span>
-        <a href="#" id="logout-link" class="btn-auth btn-logout">Cerrar Sesión</a>
-      {% else %}
-        <a href="/auth" class="btn-auth btn-login">Iniciar Sesión</a>
-        <a href="/auth?tab=register" class="btn-auth btn-register">Registrarse</a>
-      {% endif %}
-    </div>
-
     <div class="container">
+      <!-- Auth Status (Top Right) -->
+      <div class="game-auth-status">
+        {% if session.get('user_id') %}
+          <span class="username-display">👤 {{ session.get('username') }}</span>
+          <a href="#" id="logout-link" class="btn-auth btn-logout">Cerrar Sesión</a>
+        {% else %}
+          <a href="/auth" class="btn-auth btn-login">Iniciar Sesión</a>
+          <a href="/auth?tab=register" class="btn-auth btn-register">Registrarse</a>
+        {% endif %}
+          </div>
 
       <div class="main-layout">
         <!-- LEFT COLUMN: GAME -->
@@ -78,6 +77,31 @@
 
           <!-- Sección de Ganador (Oculta al inicio) -->
           <div id="winner-section" class="hidden">
+            <form action="/adivina" method="POST" class="score-form">
+                <input type="hidden" name="guardar_score" value="1">
+                <input type="hidden" name="intentos_finales" id="intentos_finales_input">
+                <input type="hidden" name="device" id="device-input">
+                
+                {% if session.get('user_id') %}
+                    <div style="margin-bottom: 1rem; color: var(--primary); font-size: 1.2rem; font-weight: bold;">
+                        👤 Jugando como: {{ session.get('username') }}
+                    </div>
+                    <button type="submit">
+                      Guardar Puntuación
+                    </button>
+                {% endif %}
+            </form>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: RANKING -->
+        <div class="ranking-card">
+          <h2>🏆 Top 5 Ranking</h2>
+          
+          <!-- Filtros de Ranking -->
+          <div class="ranking-filters">
+              <button class="filter-btn active" data-period="all">Global</button>
+              <button class="filter-btn" data-period="monthly">Mensual</button>
               <button class="filter-btn" data-period="weekly">Semanal</button>
           </div>
 
