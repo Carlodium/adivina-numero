@@ -248,16 +248,23 @@
 
 /* Happy Eyes ^^ */
 .face.happy .eye {
-    height: 14px;
-    width: 14px;
+    height: 3px; /* Línea delgada */
+    width: 16px; /* Ancho de cada ojo */
     border-radius: 0;
-    background: transparent;
+    background: #1e293b; /* Color sólido */
     border: none;
-    border-bottom: 3px solid #1e293b;
-    border-radius: 0 0 100% 100%;
-    margin-top: 6px;
+    margin-top: 10px;
     overflow: visible;
-    transform: rotate(180deg); /* Flip to make it ^^ */
+}
+/* Ojo izquierdo: inclinado hacia arriba-derecha / */
+.face.happy .eye.left {
+    transform: rotate(20deg); /* Inclinación suave */
+    transform-origin: center;
+}
+/* Ojo derecho: inclinado hacia arriba-izquierda \ */
+.face.happy .eye.right {
+    transform: rotate(-20deg); /* Inclinación suave opuesta */
+    transform-origin: center;
 }
 .face.happy .pupil { display: none; }
 
