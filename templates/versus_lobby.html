@@ -165,15 +165,6 @@
         let isReady = false;
         let countdownInterval = null;
 
-        // Update my role
-        const myPlayer = players.find(p => p.sid === mySid);
-        if (myPlayer) {
-            if (myRole !== 'host' && myPlayer.role === 'host') {
-                addSystemMessage("👑 <strong>¡Ahora eres el Host!</strong>", "#4ade80");
-            }
-            myRole = myPlayer.role;
-        }
-
         // DOM Elements
         const menuSection = document.getElementById('menu-section');
         const lobbySection = document.getElementById('lobby-section');
@@ -437,6 +428,9 @@
             // Update my role (in case I was promoted to host)
             const myPlayer = players.find(p => p.sid === mySid);
             if (myPlayer) {
+                if (myRole !== 'host' && myPlayer.role === 'host') {
+                    addSystemMessage("👑 <strong>¡Ahora eres el Host!</strong>", "#4ade80");
+                }
                 myRole = myPlayer.role;
             }
 
