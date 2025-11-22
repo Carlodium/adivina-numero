@@ -84,20 +84,6 @@
                 <input type="hidden" name="device" id="device-input">
                 
                 {% if session.get('user_id') %}
-                    <div style="margin-bottom: 1rem; color: var(--primary); font-size: 1.2rem; font-weight: bold;">
-                        👤 Jugando como: {{ session.get('username') }}
-                    </div>
-                    <button type="submit">
-                      Guardar Puntuación
-                    </button>
-                {% endif %}
-            </form>
-          </div>
-        </div>
-
-        <!-- RIGHT COLUMN: RANKING -->
-        <div class="ranking-card">
-          <h2>🏆 Top 5 Ranking</h2>
           
           <!-- Filtros de Ranking -->
           <div class="ranking-filters">
