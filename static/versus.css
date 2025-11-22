@@ -196,7 +196,7 @@
 .eyes {
     display: flex;
     flex-direction: row; /* HORIZONTAL! */
-    gap: 30px; /* More spacing between eyes */
+    gap: 18px; /* Sweet spot - not too close, not too far */
     margin-bottom: 8px;
     z-index: 2;
 }
