@@ -51,6 +51,32 @@
     margin-top: 0.5rem;
 }
 
+/* --- GAME HEADER (Versus Game Page) --- */
+.versus-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.turn-indicator {
+    padding: 0.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.turn-indicator.active {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+    transform: scale(1.05);
+}
+
 /* --- AVATAR STAGE --- */
 .avatar-stage {
     display: flex;
