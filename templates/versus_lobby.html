@@ -514,6 +514,10 @@
                 const readyCount = document.querySelectorAll('.ready-aura').length;
                 const totalPlayers = document.querySelectorAll('.avatar-container').length; // Should be 2 usually
                 
+                // Update Visual Counter
+                const readyCountEl = document.getElementById('ready-count');
+                if(readyCountEl) readyCountEl.textContent = `${readyCount}/2 Listos`;
+                
                 // Update Counter Text
                 const readyBtn = document.getElementById('btn-ready');
                 if(readyBtn) readyBtn.textContent = data.ready && isMe ? "¡LISTO!" : "ESTOY LISTO";
