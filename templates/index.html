@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adivina el Número</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎲 Adivina el Número</h1>
+
+      <div class="game-card">
+        <p class="message">{{ mensaje }}</p>
+
+        {% if pidiendo_nombre %}
+        <form method="POST" class="game-form">
+          <input
+            type="text"
+            name="nombre"
+            placeholder="¡Escribe tu nombre, campeón!"
+            autofocus
+            required
+            autocomplete="off"
+          />
+          <button type="submit" name="guardar_score" value="true">
+            Guardar Puntuación
+          </button>
+        </form>
+        {% elif not juego_terminado %}
+        <form method="POST" class="game-form">
+          <input
+            type="number"
+            name="intento"
+            placeholder="Introduce un número..."
+            autofocus
+            autocomplete="off"
+          />
+          <button type="submit">Probar suerte</button>
+        </form>
+        {% else %}
+        <form method="POST">
+          <button
+            type="submit"
+            name="reiniciar"
+            value="true"
+            class="restart-btn"
+          >
+            Jugar de nuevo
+          </button>
+        </form>
+        {% endif %}
+
+        <div class="stats">
+          <p>Intentos: <span>{{ intentos }}</span></p>
+        </div>
+      </div>
+
+      {% if top_scores %}
+      <div class="ranking-card">
+        <h2>🏆 Top 5 Mejores Jugadores</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Jugador</th>
+              <th>Intentos</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for name, attempts in top_scores %}
+            <tr>
+              <td>{{ name }}</td>
+              <td>{{ attempts }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>

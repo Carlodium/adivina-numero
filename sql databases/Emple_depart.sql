@@ -1,0 +1,35 @@
+/* 1.- Crear la base de datos y abrirla. Crear las tablas DEPART y EMPLE */
+DROP DATABASE IF EXISTS EMPLE_DEPART;
+CREATE DATABASE EMPLE_DEPART;
+USE EMPLE_DEPART;
+
+CREATE TABLE DEPART (
+    CODDEP INT PRIMARY KEY,
+    NOMDEP VARCHAR(50),
+    CIUDAD VARCHAR(50)
+);
+
+CREATE TABLE EMPLE (
+    IDEMP INT PRIMARY KEY,
+    NOM VARCHAR(50),
+    APEL VARCHAR(50),
+    EDAD INT,
+    SUELDO DECIMAL(10, 2),
+    COMISION DECIMAL(10, 2),
+    CODDEP INT,
+    FOREIGN KEY (CODDEP) REFERENCES DEPART(CODDEP)
+);
+
+/* 2.- Modificaciones solicitadas */
+
+/* Añadir el campo DNI a la tabla EMPLE, detrás de la clave primaria */
+ALTER TABLE EMPLE ADD DNI VARCHAR(20) AFTER IDEMP;
+
+/* Cambiar el campo NOM por NOMEMPLE */
+ALTER TABLE EMPLE CHANGE NOM NOMEMPLE VARCHAR(50);
+
+/* Cambiar el campo EDAD por F_NACIMIENTO (Cambiamos también el tipo a DATE para ser coherentes) */
+ALTER TABLE EMPLE CHANGE EDAD F_NACIMIENTO DATE;
+
+/* Eliminar el campo COMISIÓN */
+ALTER TABLE EMPLE DROP COLUMN COMISION;

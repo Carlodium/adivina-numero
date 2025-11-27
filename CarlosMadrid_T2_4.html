@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+    <meta charset="UTF-8">
+    <title>Pseudoclases CSS</title>
+
+        <style>
+
+        /* Texto con href personalizado */
+        .link {
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin: 5px;
+        display: inline-block;
+        color: white;
+        background-color: #2196F3; /* color base */
+        }
+
+        .link:hover {
+        filter: brightness(85%);
+        }
+
+        /* Cuando el enlace ya ha sido visitado */
+        .link:visited {
+        background-color: #9C27B0; /* color de "pulsado" */
+        }
+
+        .google {
+        background-color: #4CAF50;
+        color: white;
+        }
+
+        .bing {
+        background-color: #2196F3;
+        color: white;
+        }
+
+        .google:hover {
+        background-color: #388E3C;
+        }
+
+        .bing:hover {
+        background-color: #1976D2;
+        }
+
+        .google:active {
+        background-color: #81C784;
+        }
+
+        .bing:active {
+        background-color: #9C27B0;
+        }
+
+        .btn {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 4px;
+        margin: 5px;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.1s, border 0.1s;
+        }
+
+        .btn1 {
+        background-color: #8BC34A;
+        }
+
+        .btn2 {
+        background-color: #388E3C;
+        }
+
+        .btn1:hover {
+        background-color: #7CB342;
+        }
+
+        .btn2:hover {
+        background-color: #2E7D32;
+        }
+
+        .btn1:active {
+        background-color: #66BB6A;
+        }
+
+        .btn2:active {
+        border: 2px solid yellow;
+        }
+        </style>
+    </head>
+    <body>
+        <a href="https://www.google.com" class="link google" target="_blank">Enlace a Google</a>
+        <a href="https://www.bing.com" class="link bing" target="_blank">Enlace a Bing</a><br><br>
+        <button class="btn btn1">Botón 1</button>
+        <button class="btn btn2">Botón 2</button>
+    </body>
+</html>

@@ -1,0 +1,26 @@
+<html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Ejemplo clases e id</title>
+      <style>
+        .azul { color: blue; }   /* selector por clase: azul */
+        .rojo { color: red; }    /* selector por clase: rojo */
+        #verde { color: green; } /* selector por id: verde */
+      </style>
+    </head>
+    <body>
+        <header>
+            <p class="azul">Este párrafo aparecerá escrito en azul.</p>
+        </header>
+        <main>
+            <ul>
+                <li class="rojo">Este elemento de la lista se mostrará en rojo.</li>
+                <li>Este se mostrará en negro porque no tiene especificación de ninguna clase.</li>
+                <li class="azul">Este se mostrará en azul.</li>
+            </ul>
+        </main>
+        <footer>
+            <p id="verde">Este párrafo aparecerá en verde porque no tiene especificada ninguna clase, pero sí un identificador como selector.</p>
+        </footer>
+    </body>
+</html>

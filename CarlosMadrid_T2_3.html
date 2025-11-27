@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Formulario y enlaces - Selectores por atributo</title>
+  <style>
+    input[name="nombre"] { background-color: #dddddd; padding: 6px; }
+
+    input[type="password"] { color: #ffffff; background-color: #222; padding: 6px; }
+
+    input[type="email"] { border: 2px solid #666666; font: Verdana; padding: 6px; }
+
+    input[type="submit"] { background-color: #000000; color: #868181; border: none; padding: 8px 14px; cursor: pointer; }
+    input[type="reset"] { background-color: #ff0000; color: #ffffff; border: none; padding: 8px 14px; cursor: pointer; }
+
+    a[href^="#"] { color: green; }
+
+    a[target="_blank"] { color: #66b3ff; font-weight: bold; }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Ejemplo: formulario y enlaces</h1>
+  </header>
+
+  <main>
+    <section id="formulario">
+      <h2>Formulario</h2>
+      <form action="#" method="post">
+        <label for="nombre">Nombre:</label><br>
+        <input type="text" id="nombre" name="nombre" required><br><br>
+
+        <label for="clave">Contraseña:</label><br>
+        <input type="password" id="clave" name="clave" required><br><br>
+
+        <label for="correo">Correo electrónico:</label><br>
+        <input type="email" id="correo" name="email"><br><br>
+
+        <input type="submit" value="Enviar">
+        <input type="reset" value="Borrar">
+      </form>
+    </section>
+
+    <section id="enlaces">
+      <h2>Enlaces</h2>
+      <p>
+        Enlace a internet:
+        <a href="https://www.example.com">Example (mismo pestaña)</a>
+      </p>
+      <p>
+        Enlace que abre en nueva pestaña:
+        <a href="https://www.wikipedia.org" target="_blank" rel="noopener noreferrer">Wikipedia (nueva pestaña)</a>
+      </p>
+      <p>
+        Enlace dentro de la propia página:
+        <a href="#seccion-destino">Ir a sección destino</a>
+      </p>
+    </section>
+
+    <section id="seccion-destino" style="margin-top:40px;">
+      <h3>Sección destino</h3>
+      <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Nobis, doloribus. Consequatur, culpa animi. Dolore magni ex in temporibus. Consequuntur quisquam ad natus laudantium culpa reiciendis eaque laboriosam, quae at corrupti!</p>
+    </section>
+  </main>
+</body>
+</html>

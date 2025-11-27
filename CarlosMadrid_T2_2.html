@@ -1,0 +1,40 @@
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Ejemplo: selectores por descendencia</title>
+  <style>
+    header nav ul { font-family: Verdana; }
+    main > ul { font-weight: bold; margin-top: 1rem; }
+    main li ul { color: blue; font-weight: normal; margin-top: 0.25rem; margin-left: 1.2rem; list-style: disc; }
+  </style>
+</head> 
+<body>
+  <header>
+    <h1>Mi página</h1>
+    <nav>
+      <ul>
+        <li>Menú 1</li>
+        <li>Menú 2</li>
+        <li>Menú 3</li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h2>Contenido:</h2>
+    <ul>
+      <li>Punto 1
+        <ul>
+          <li>Elemento 1.1</li>
+          <li>Elemento 1.2</li>
+        </ul>
+      </li>
+      <li>Punto 2
+        <ul>
+          <li>Elemento 2.1</li>
+          <li>Elemento 2.2</li>
+        </ul>
+      </li>
+    </ul>
+  </main>
+</body>
+</html>  
